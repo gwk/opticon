@@ -9,9 +9,24 @@
 /* Begin PBXBuildFile section */
 		EC2CD76D18BE4FAC00C8E45D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC2CD76C18BE4FAC00C8E45D /* Cocoa.framework */; };
 		EC2CD7A718BE541A00C8E45D /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC2CD7A118BE541A00C8E45D /* Images.xcassets */; };
-		EC2CD7A818BE541A00C8E45D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EC2CD7A418BE541A00C8E45D /* AppDelegate.m */; };
-		EC2CD7A918BE541A00C8E45D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EC2CD7A518BE541A00C8E45D /* main.m */; };
+		EC2CD7A818BE541A00C8E45D /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC2CD7A418BE541A00C8E45D /* AppDelegate.mm */; };
+		EC2CD7A918BE541A00C8E45D /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC2CD7A518BE541A00C8E45D /* main.mm */; };
+		ECB8911018BFE7B200B8F670 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB890FC18BFD6D000B8F670 /* CoreFoundation.framework */; };
+		ECB8911318BFE7B200B8F670 /* opticon-askpass.c in Sources */ = {isa = PBXBuildFile; fileRef = ECB8911218BFE7B200B8F670 /* opticon-askpass.c */; };
+		ECB8911A18BFEFB200B8F670 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB8911918BFEFB200B8F670 /* Carbon.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		ECB8910D18BFE7B100B8F670 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		EC2CD76918BE4FAC00C8E45D /* opticon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = opticon.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -22,10 +37,15 @@
 		EC2CD78B18BE4FAC00C8E45D /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		EC2CD7A118BE541A00C8E45D /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		EC2CD7A318BE541A00C8E45D /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		EC2CD7A418BE541A00C8E45D /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		EC2CD7A518BE541A00C8E45D /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		EC2CD7A418BE541A00C8E45D /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		EC2CD7A518BE541A00C8E45D /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		EC2CD7A618BE541A00C8E45D /* prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = prefix.pch; sourceTree = "<group>"; };
 		ECB890F518BE57E600B8F670 /* info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = info.plist; sourceTree = "<group>"; };
+		ECB890FC18BFD6D000B8F670 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		ECB8910918BFD9E100B8F670 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		ECB8910F18BFE7B100B8F670 /* opticon-askpass */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "opticon-askpass"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ECB8911218BFE7B200B8F670 /* opticon-askpass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "opticon-askpass.c"; sourceTree = "<group>"; };
+		ECB8911918BFEFB200B8F670 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +57,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ECB8910C18BFE7B100B8F670 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ECB8911A18BFEFB200B8F670 /* Carbon.framework in Frameworks */,
+				ECB8911018BFE7B200B8F670 /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -45,7 +74,8 @@
 			children = (
 				ECB890F518BE57E600B8F670 /* info.plist */,
 				EC2CD7A018BE541A00C8E45D /* res */,
-				EC2CD7A218BE541A00C8E45D /* src */,
+				EC2CD7A218BE541A00C8E45D /* src-app */,
+				ECB8911118BFE7B200B8F670 /* src-askpass */,
 				EC2CD76B18BE4FAC00C8E45D /* Frameworks */,
 				EC2CD76A18BE4FAC00C8E45D /* Products */,
 			);
@@ -55,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				EC2CD76918BE4FAC00C8E45D /* opticon.app */,
+				ECB8910F18BFE7B100B8F670 /* opticon-askpass */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -62,8 +93,11 @@
 		EC2CD76B18BE4FAC00C8E45D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				ECB8911918BFEFB200B8F670 /* Carbon.framework */,
+				ECB8910918BFD9E100B8F670 /* CoreGraphics.framework */,
 				EC2CD76C18BE4FAC00C8E45D /* Cocoa.framework */,
 				EC2CD78B18BE4FAC00C8E45D /* XCTest.framework */,
+				ECB890FC18BFD6D000B8F670 /* CoreFoundation.framework */,
 				EC2CD76E18BE4FAC00C8E45D /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -87,15 +121,23 @@
 			path = res;
 			sourceTree = "<group>";
 		};
-		EC2CD7A218BE541A00C8E45D /* src */ = {
+		EC2CD7A218BE541A00C8E45D /* src-app */ = {
 			isa = PBXGroup;
 			children = (
 				EC2CD7A318BE541A00C8E45D /* AppDelegate.h */,
-				EC2CD7A418BE541A00C8E45D /* AppDelegate.m */,
-				EC2CD7A518BE541A00C8E45D /* main.m */,
+				EC2CD7A418BE541A00C8E45D /* AppDelegate.mm */,
+				EC2CD7A518BE541A00C8E45D /* main.mm */,
 				EC2CD7A618BE541A00C8E45D /* prefix.pch */,
 			);
-			path = src;
+			path = "src-app";
+			sourceTree = "<group>";
+		};
+		ECB8911118BFE7B200B8F670 /* src-askpass */ = {
+			isa = PBXGroup;
+			children = (
+				ECB8911218BFE7B200B8F670 /* opticon-askpass.c */,
+			);
+			path = "src-askpass";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -117,6 +159,24 @@
 			productName = opticon;
 			productReference = EC2CD76918BE4FAC00C8E45D /* opticon.app */;
 			productType = "com.apple.product-type.application";
+		};
+		ECB8910E18BFE7B100B8F670 /* opticon-askpass */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ECB8911618BFE7B200B8F670 /* Build configuration list for PBXNativeTarget "opticon-askpass" */;
+			buildPhases = (
+				ECB8910B18BFE7B100B8F670 /* Sources */,
+				ECB8910C18BFE7B100B8F670 /* Frameworks */,
+				ECB8910D18BFE7B100B8F670 /* CopyFiles */,
+				ECB8911B18C0C2B700B8F670 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "opticon-askpass";
+			productName = "opticon-askpass";
+			productReference = ECB8910F18BFE7B100B8F670 /* opticon-askpass */;
+			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
@@ -141,6 +201,7 @@
 			projectRoot = "";
 			targets = (
 				EC2CD76818BE4FAC00C8E45D /* opticon */,
+				ECB8910E18BFE7B100B8F670 /* opticon-askpass */,
 			);
 		};
 /* End PBXProject section */
@@ -156,13 +217,37 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		ECB8911B18C0C2B700B8F670 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$PRODUCT_NAME\necho \"product: '$product'\"\ncp \"$product\" ~/bin/\"$PRODUCT_NAME-$CONFIGURATION\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		EC2CD76518BE4FAC00C8E45D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC2CD7A918BE541A00C8E45D /* main.m in Sources */,
-				EC2CD7A818BE541A00C8E45D /* AppDelegate.m in Sources */,
+				EC2CD7A918BE541A00C8E45D /* main.mm in Sources */,
+				EC2CD7A818BE541A00C8E45D /* AppDelegate.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ECB8910B18BFE7B100B8F670 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ECB8911318BFE7B200B8F670 /* opticon-askpass.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,15 +270,13 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -224,8 +307,9 @@
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=0";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -243,7 +327,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = src/prefix.pch;
+				GCC_PREFIX_HEADER = "src-app/prefix.pch";
 				INFOPLIST_FILE = info.plist;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -256,10 +340,26 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = src/prefix.pch;
+				GCC_PREFIX_HEADER = "src-app/prefix.pch";
 				INFOPLIST_FILE = info.plist;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		ECB8911718BFE7B200B8F670 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		ECB8911818BFE7B200B8F670 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -280,6 +380,15 @@
 			buildConfigurations = (
 				EC2CD79B18BE4FAC00C8E45D /* Debug */,
 				EC2CD79C18BE4FAC00C8E45D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ECB8911618BFE7B200B8F670 /* Build configuration list for PBXNativeTarget "opticon-askpass" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ECB8911718BFE7B200B8F670 /* Debug */,
+				ECB8911818BFE7B200B8F670 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
