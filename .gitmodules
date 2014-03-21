@@ -1,0 +1,3 @@
+[submodule "submodules/libqk"]
+	path = submodules/libqk
+	url = git@github.com:gwk/libqk.git

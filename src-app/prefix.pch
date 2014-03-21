@@ -1,5 +1,11 @@
 // Copyright 2014 George King.
 // Permission to use this file is granted in opticon/license.txt.
 
-#import <Cocoa/Cocoa.h>
 
+#if __OBJC__ && __cplusplus
+#define OBJCPP 1
+#import <sqlite3.h>
+#import <QuartzCore/QuartzCore.h>
+#import <Cocoa/Cocoa.h>
+#import <AppKit/AppKit.h>
+#endif

@@ -15,7 +15,9 @@
 #import <termios.h>
 #import <Carbon/Carbon.h>
 
+
 #define errFL(msg, ...) fprintf(stderr, msg "\n", ## __VA_ARGS__)
+
 
 bool interrupted = false;
 

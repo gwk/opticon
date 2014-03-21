@@ -73,6 +73,11 @@ CGEventRef eventTapped(CGEventTapProxy proxy, CGEventType type, CGEventRef event
 }
 
 
+- (void)openDB {
+  //auto path = @"~/opticon.sqlite3".stringByExpandingTildeInPath;
+}
+
+
 - (void)setupMonitors {
 
   [self addNote:NSWorkspaceWillLaunchApplicationNotification];
@@ -109,7 +114,7 @@ CGEventRef eventTapped(CGEventTapProxy proxy, CGEventType type, CGEventRef event
   CFMachPortRef tap =
   CGEventTapCreate(kCGAnnotatedSessionEventTap, // tap events as they flow into applications (as late as possible).
                    kCGTailAppendEventTap, // insert tap after any existing filters.
-                   kCGEventTapOptionListenOnly, // passive tap..
+                   kCGEventTapOptionListenOnly, // passive tap.
                    eventMask,
                    eventTapped,
                    NULL);
