@@ -16,7 +16,6 @@
 		EC777AF018DD01AA00EC4D37 /* QKCGColorSpace.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A9018DD01AA00EC4D37 /* QKCGColorSpace.mm */; };
 		EC777AF118DD01AA00EC4D37 /* QKCGContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A9218DD01AA00EC4D37 /* QKCGContext.mm */; };
 		EC777AF218DD01AA00EC4D37 /* QKCGImage.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A9418DD01AA00EC4D37 /* QKCGImage.mm */; };
-		EC777AF318DD01AA00EC4D37 /* CALayer+CUI.m in Sources */ = {isa = PBXBuildFile; fileRef = EC777A9718DD01AA00EC4D37 /* CALayer+CUI.m */; };
 		EC777AF418DD01AA00EC4D37 /* CCAGLLayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A9918DD01AA00EC4D37 /* CCAGLLayer.mm */; };
 		EC777AF518DD01AA00EC4D37 /* CUIColor.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A9B18DD01AA00EC4D37 /* CUIColor.mm */; };
 		EC777AF618DD01AA00EC4D37 /* CUIView.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A9D18DD01AA00EC4D37 /* CUIView.mm */; };
@@ -36,8 +35,6 @@
 		EC777B0418DD01AA00EC4D37 /* NSOutputStream+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777ABA18DD01AA00EC4D37 /* NSOutputStream+QK.mm */; };
 		EC777B0518DD01AA00EC4D37 /* NSString+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777ABC18DD01AA00EC4D37 /* NSString+QK.mm */; };
 		EC777B0618DD01AA00EC4D37 /* NSTimer+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777ABE18DD01AA00EC4D37 /* NSTimer+QK.mm */; };
-		EC777B0718DD01AA00EC4D37 /* qk-check.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777AC218DD01AA00EC4D37 /* qk-check.mm */; };
-		EC777B0818DD01AA00EC4D37 /* qk-log.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777AC418DD01AA00EC4D37 /* qk-log.mm */; };
 		EC777B0918DD01AA00EC4D37 /* qk-math.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777AC718DD01AA00EC4D37 /* qk-math.mm */; };
 		EC777B0A18DD01AA00EC4D37 /* QKBinding.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777ACC18DD01AA00EC4D37 /* QKBinding.mm */; };
 		EC777B0B18DD01AA00EC4D37 /* QKCFObject.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777ACE18DD01AA00EC4D37 /* QKCFObject.mm */; };
@@ -60,6 +57,7 @@
 		ECB8911318BFE7B200B8F670 /* opticon-askpass.c in Sources */ = {isa = PBXBuildFile; fileRef = ECB8911218BFE7B200B8F670 /* opticon-askpass.c */; };
 		ECB8911A18BFEFB200B8F670 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB8911918BFEFB200B8F670 /* Carbon.framework */; };
 		ECE4B08318C3A516003D4657 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC2CD7A118BE541A00C8E45D /* Images.xcassets */; };
+		ECECE51518F0FB23007AAB51 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB8911918BFEFB200B8F670 /* Carbon.framework */; };
 		ECFE977B18C4F32B00D89FE6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECFE977A18C4F32B00D89FE6 /* QuartzCore.framework */; };
 /* End PBXBuildFile section */
 
@@ -104,14 +102,10 @@
 		EC2CD7A418BE541A00C8E45D /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		EC2CD7A518BE541A00C8E45D /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		EC2CD7A618BE541A00C8E45D /* prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = prefix.pch; sourceTree = "<group>"; };
+		EC45910718F8E15A00AA1460 /* event-structs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "event-structs.h"; sourceTree = "<group>"; };
 		EC77797E18DD011F00EC4D37 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		EC77797F18DD011F00EC4D37 /* .gitmodules */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitmodules; sourceTree = "<group>"; };
 		EC77798018DD011F00EC4D37 /* conf.gloss */ = {isa = PBXFileReference; lastKnownFileType = text; path = conf.gloss; sourceTree = "<group>"; };
-		EC77798118DD011F00EC4D37 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
-		EC77798218DD011F00EC4D37 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
-		EC77798318DD011F00EC4D37 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
-		EC77798418DD011F00EC4D37 /* libqk-license-glm.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "libqk-license-glm.txt"; sourceTree = "<group>"; };
-		EC77798518DD011F00EC4D37 /* libqk-license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "libqk-license.txt"; sourceTree = "<group>"; };
 		EC77798618DD011F00EC4D37 /* qk.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = qk.xcodeproj; sourceTree = "<group>"; };
 		EC77798918DD011F00EC4D37 /* readme.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = readme.md; sourceTree = "<group>"; };
 		EC77798B18DD011F00EC4D37 /* dancing-squirrel.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "dancing-squirrel.jpg"; sourceTree = "<group>"; };
@@ -445,9 +439,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EC777B1B18DD056800EC4D37 /* libsqlite3.a in Frameworks */,
-				ECFE977B18C4F32B00D89FE6 /* QuartzCore.framework in Frameworks */,
+				ECECE51518F0FB23007AAB51 /* Carbon.framework in Frameworks */,
 				EC2CD76D18BE4FAC00C8E45D /* Cocoa.framework in Frameworks */,
+				ECFE977B18C4F32B00D89FE6 /* QuartzCore.framework in Frameworks */,
+				EC777B1B18DD056800EC4D37 /* libsqlite3.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -522,6 +517,7 @@
 			children = (
 				EC2CD7A318BE541A00C8E45D /* AppDelegate.h */,
 				EC2CD7A418BE541A00C8E45D /* AppDelegate.mm */,
+				EC45910718F8E15A00AA1460 /* event-structs.h */,
 				EC2CD7A518BE541A00C8E45D /* main.mm */,
 				EC2CD7A618BE541A00C8E45D /* prefix.pch */,
 			);
@@ -542,11 +538,6 @@
 				EC77797E18DD011F00EC4D37 /* .gitignore */,
 				EC77797F18DD011F00EC4D37 /* .gitmodules */,
 				EC77798018DD011F00EC4D37 /* conf.gloss */,
-				EC77798118DD011F00EC4D37 /* Default-568h@2x.png */,
-				EC77798218DD011F00EC4D37 /* Default.png */,
-				EC77798318DD011F00EC4D37 /* Default@2x.png */,
-				EC77798418DD011F00EC4D37 /* libqk-license-glm.txt */,
-				EC77798518DD011F00EC4D37 /* libqk-license.txt */,
 				EC77798618DD011F00EC4D37 /* qk.xcodeproj */,
 				EC77798918DD011F00EC4D37 /* readme.md */,
 				EC77798A18DD011F00EC4D37 /* res-qk */,
@@ -922,17 +913,9 @@
 		EC777A5F18DD012000EC4D37 /* submodules */ = {
 			isa = PBXGroup;
 			children = (
-				EC777A6018DD012000EC4D37 /* libqk-built-ios */,
 				EC777A6118DD012000EC4D37 /* libqk-built-mac */,
 			);
 			path = submodules;
-			sourceTree = "<group>";
-		};
-		EC777A6018DD012000EC4D37 /* libqk-built-ios */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "libqk-built-ios";
 			sourceTree = "<group>";
 		};
 		EC777A6118DD012000EC4D37 /* libqk-built-mac */ = {
@@ -1184,7 +1167,7 @@
 				ECB8910B18BFE7B100B8F670 /* Sources */,
 				ECB8910C18BFE7B100B8F670 /* Frameworks */,
 				ECB8910D18BFE7B100B8F670 /* CopyFiles */,
-				ECB8911B18C0C2B700B8F670 /* ShellScript */,
+				ECB8911B18C0C2B700B8F670 /* Copy product to ~/bin */,
 			);
 			buildRules = (
 			);
@@ -1258,13 +1241,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		ECB8911B18C0C2B700B8F670 /* ShellScript */ = {
+		ECB8911B18C0C2B700B8F670 /* Copy product to ~/bin */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Copy product to ~/bin";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1306,7 +1290,6 @@
 				EC777B1318DD01AA00EC4D37 /* QKPixFmt.mm in Sources */,
 				EC777B0A18DD01AA00EC4D37 /* QKBinding.mm in Sources */,
 				EC777AFD18DD01AA00EC4D37 /* NSDictionary+QK.mm in Sources */,
-				EC777B0818DD01AA00EC4D37 /* qk-log.mm in Sources */,
 				EC777B1718DD01AA00EC4D37 /* qk-sql-util.mm in Sources */,
 				EC777B1618DD01AA00EC4D37 /* QKTag.mm in Sources */,
 				EC777AF118DD01AA00EC4D37 /* QKCGContext.mm in Sources */,
@@ -1315,14 +1298,12 @@
 				EC777B0618DD01AA00EC4D37 /* NSTimer+QK.mm in Sources */,
 				EC777AED18DD01AA00EC4D37 /* CALayer+QK.mm in Sources */,
 				EC777AEF18DD01AA00EC4D37 /* qk-cg-util.mm in Sources */,
-				EC777B0718DD01AA00EC4D37 /* qk-check.mm in Sources */,
 				EC777B1818DD01AA00EC4D37 /* SqlDatabase.mm in Sources */,
 				EC777AF218DD01AA00EC4D37 /* QKCGImage.mm in Sources */,
 				EC777B0E18DD01AA00EC4D37 /* QKErrorDomain.mm in Sources */,
 				EC777B0D18DD01AA00EC4D37 /* QKDuo.mm in Sources */,
 				EC777B0118DD01AA00EC4D37 /* NSMutableData+QK.mm in Sources */,
 				EC777B0C18DD01AA00EC4D37 /* QKData.mm in Sources */,
-				EC777AF318DD01AA00EC4D37 /* CALayer+CUI.m in Sources */,
 				EC777B0518DD01AA00EC4D37 /* NSString+QK.mm in Sources */,
 				EC2CD7A818BE541A00C8E45D /* AppDelegate.mm in Sources */,
 				EC777B0B18DD01AA00EC4D37 /* QKCFObject.mm in Sources */,

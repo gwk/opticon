@@ -1,5 +1,5 @@
 // Copyright 2014 George King.
-// Permission to use this file is granted in opticon/license.txt.
+// Permission to use this file is granted in opticon/license.txt (ISC).
 
 // program to serve as SUDO_ASKPASS helper.
 // this uses carbon's secure text entry mechanism to prevent your user password from being
@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
   action.sa_handler = sig_handler;
   sigaction(SIGINT, &action, NULL);
   // print prompt.
-  fputs("※ ", stderr);
+  fputs("⎉ ", stderr);
   fflush(stderr);
   // turn off echo.
   struct termios std_state, silent_state;
