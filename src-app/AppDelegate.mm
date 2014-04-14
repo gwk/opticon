@@ -51,6 +51,7 @@ static inline NSTimeInterval timestampForEvent(CGEventRef event) {
 CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* ctx) {
   F64 time = timestampForEvent(event);
   NSData* data = nil;
+  U8 isMouseMoving = 0;
   switch (type) {
     case kCGEventNull:
     case kCGEventTabletPointer:
@@ -62,6 +63,7 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     case kCGEventLeftMouseDragged:
     case kCGEventRightMouseDragged:
     case kCGEventOtherMouseDragged:
+      isMouseMoving = 1;
     case kCGEventLeftMouseDown:
     case kCGEventLeftMouseUp:
     case kCGEventRightMouseDown:
@@ -70,6 +72,9 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     case kCGEventOtherMouseUp: {
       CGPoint loc = CGEventGetLocation(event);
       U16 pressure = CGEventGetDoubleValueField(event, kCGMouseEventPressure) * max_U16; // double value is between 0 and 1.
+      U8 down = (type == kCGEventLeftMouseDown || type == kCGEventLeftMouseDragged ||
+                 type == kCGEventRightMouseDown || type == kCGEventRightMouseDragged ||
+                 type == kCGEventOtherMouseDown || type == kCGEventOtherMouseDragged);
       MouseEvent me = {
         .time=time,
         .x=(I16)loc.x,
@@ -79,6 +84,8 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         .button_number=(U8)CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber),
         .click_state=(U8)CGEventGetIntegerValueField(event, kCGMouseEventClickState),
         .subtype=(U8)CGEventGetIntegerValueField(event, kCGMouseEventClickState),
+        .down=down,
+        .moving=isMouseMoving,
       };
       data = [NSData dataWithBytes:&me length:sizeof(me)];
       break;
@@ -90,6 +97,7 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         .keycode=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode),
         .keyboard_type=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeyboardType),
         .autorepeat=(U8)CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat),
+        .down=(type == kCGEventKeyDown),
       };
       data = [NSData dataWithBytes:&ke length:sizeof(ke)];
     }
@@ -264,13 +272,14 @@ static auto nonstandardEventTypes =
 
 - (void)applicationDidFinishLaunching:(NSNotification*)note {
   calculateStartTime();
+  
   [self setupDb];
   [self setupMonitors];
 }
 
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
-  _db = nil; // should finalize the db.
+  [_db close];
 }
 
 
