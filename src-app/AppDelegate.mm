@@ -7,7 +7,7 @@
 #import "qk-sql-util.h"
 #import "NSDate+QK.h"
 #import "NSString+QK.h"
-#import "QKStructArray.h"
+#import "QKMutableStructArray.h"
 #import "SqlDatabase.h"
 #import "event-structs.h"
 #import "AppDelegate.h"
@@ -21,10 +21,11 @@ AppDelegate* appDelegate;
 
 @property (nonatomic) SqlDatabase* db;
 @property (nonatomic) SqlStatement* insertEventStatement;
-@property (nonatomic) F64 pendingEventTime;
-@property (nonatomic) Int pendingEventPid;
-@property (nonatomic) CGEventType pendingEventType;
-@property (nonatomic) QKStructArray* pendingEventData;
+@property (nonatomic) F64 pendingTime;
+@property (nonatomic) Uns pendingType;
+@property (nonatomic) Int pendingPid;
+@property (nonatomic) Int pendingFlags;
+@property (nonatomic) QKMutableStructArray* pendingEventData;
 
 @end
 
@@ -48,16 +49,21 @@ static inline NSTimeInterval timestampForEvent(CGEventRef event) {
 }
 
 
-CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void* ctx) {
+CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType eventType, CGEventRef event, void* ctx) {
   F64 time = timestampForEvent(event);
-  NSData* data = nil;
+  Int type = 0;
+  Int pid = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
+  Int flags = CGEventGetFlags(event);
+  void* ptr = NULL;
+  I32 len = 0;
   U8 isMouseMoving = 0;
-  switch (type) {
+  switch (eventType) {
     case kCGEventNull:
     case kCGEventTabletPointer:
     case kCGEventTabletProximity:
       return NULL;
     case kCGEventFlagsChanged:
+      type = 3;
       break;
     case kCGEventMouseMoved:
     case kCGEventLeftMouseDragged:
@@ -70,11 +76,12 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     case kCGEventRightMouseUp:
     case kCGEventOtherMouseDown:
     case kCGEventOtherMouseUp: {
+      type = 1;
       CGPoint loc = CGEventGetLocation(event);
       U16 pressure = CGEventGetDoubleValueField(event, kCGMouseEventPressure) * max_U16; // double value is between 0 and 1.
-      U8 down = (type == kCGEventLeftMouseDown || type == kCGEventLeftMouseDragged ||
-                 type == kCGEventRightMouseDown || type == kCGEventRightMouseDragged ||
-                 type == kCGEventOtherMouseDown || type == kCGEventOtherMouseDragged);
+      U8 down = (eventType == kCGEventLeftMouseDown || eventType == kCGEventLeftMouseDragged ||
+                 eventType == kCGEventRightMouseDown || eventType == kCGEventRightMouseDragged ||
+                 eventType == kCGEventOtherMouseDown || eventType == kCGEventOtherMouseDragged);
       MouseEvent me = {
         .time=time,
         .x=(I16)loc.x,
@@ -87,35 +94,40 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         .down=down,
         .moving=isMouseMoving,
       };
-      data = [NSData dataWithBytes:&me length:sizeof(me)];
+      ptr = &me;
+      len = sizeof(me);
       break;
     }
     case kCGEventKeyDown:
     case kCGEventKeyUp: {
+      type = 2;
       KeyEvent ke = {
         .time=time,
         .keycode=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode),
         .keyboard_type=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeyboardType),
         .autorepeat=(U8)CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat),
-        .down=(type == kCGEventKeyDown),
+        .down=(eventType == kCGEventKeyDown),
       };
-      data = [NSData dataWithBytes:&ke length:sizeof(ke)];
+      ptr = &ke;
+      len = sizeof(ke);
     }
     case kCGEventScrollWheel: {
+      type = 4;
       WheelEvent we = {
         .time=time,
         .delta1=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis1),
         .delta2=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis2),
       };
-      data = [NSData dataWithBytes:&we length:sizeof(we)];
+      ptr = &we;
+      len = sizeof(we);
       break;
     }
   }
   auto delegate = (__bridge AppDelegate*)ctx;
-  Int pid = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
-  [delegate logTime:time type:type pid:pid flags:CGEventGetFlags(event) data:data];
+  [delegate logTime:time type:type pid:pid flags:flags ptr:ptr len:len];
   return NULL;
 }
+
 
 NSString* const inputSourceName = (__bridge NSString*)kTISNotifySelectedKeyboardInputSourceChanged;
 
@@ -127,7 +139,6 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
   auto delegate = (__bridge AppDelegate*)observer;
   TISInputSourceRef inputSource = TISCopyCurrentKeyboardLayoutInputSource();
   auto inputId = (__bridge NSString*)TISGetInputSourceProperty(inputSource, kTISPropertyInputSourceID);
-  LOG(inputId);
   [delegate logTime:[NSDate posixTime] typeName:inputSourceName pid:0 string:inputId];
 }
 
@@ -148,6 +159,26 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 }
 
 
+- (void)flushEvents {
+  if (_pendingEventData.length) {
+    [self logTime:_pendingTime type:_pendingType pid:_pendingPid flags:_pendingFlags data:_pendingEventData.data];
+  }
+}
+
+
+- (void)logTime:(F64)time type:(Int)type pid:(Int)pid flags:(Int)flags ptr:(void*)ptr len:(I32)len {
+  if (type != _pendingType || pid != _pendingPid || flags != _pendingFlags) {
+    [self flushEvents];
+    _pendingType = type;
+    _pendingPid = pid;
+    _pendingFlags = flags;
+    [_pendingEventData resetWithElSize:len];
+  }
+  qk_assert(_pendingEventData.elSize == len, @"mismatched elSize: %d; len: %d", _pendingEventData.elSize, len);
+  [_pendingEventData appendEl:ptr];
+}
+
+
 - (void)logTime:(F64)time typeName:(NSString*)name pid:(Int)pid string:(NSString*)string {
   Int type = [nonstandardEventTypes[name] intValue];
   [self logTime:time type:type pid:pid flags:0 data:string.asUtf8Data];
@@ -155,7 +186,11 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 
 
 static auto nonstandardEventTypes =
-  @{NSWorkspaceWillLaunchApplicationNotification:     @101,
+  @{@"mouse": @1,
+    @"key":   @2,
+    @"flag":  @3,
+    @"wheel": @4,
+    NSWorkspaceWillLaunchApplicationNotification:     @101,
     NSWorkspaceDidLaunchApplicationNotification:      @102,
     NSWorkspaceDidTerminateApplicationNotification:   @103,
     NSWorkspaceDidHideApplicationNotification:        @104,
@@ -210,7 +245,7 @@ static auto nonstandardEventTypes =
 
 
 - (void)setupMonitors {
-  
+  _pendingEventData = [QKMutableStructArray withElSize:0];
   [self addNote:NSWorkspaceWillLaunchApplicationNotification];
   [self addNote:NSWorkspaceDidLaunchApplicationNotification];
   [self addNote:NSWorkspaceDidTerminateApplicationNotification];
@@ -279,6 +314,7 @@ static auto nonstandardEventTypes =
 
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
+  [self flushEvents];
   [_db close];
 }
 
