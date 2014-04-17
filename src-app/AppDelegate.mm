@@ -16,16 +16,45 @@
 
 AppDelegate* appDelegate;
 
+static NSString* const iconStringEnabled = @"⎊";
+static NSString* const iconStringDisabled = @"⎉";
+
+static NSString* const tooltipEnabled = @"Disable Opticon to avoid collecting sensitive event data.";
+static NSString* const tooltipDisabled = @"Enable Opticon to collect event data.";
+
+typedef enum {
+  EventTypeUnknown = 0,
+  EventTypeDisabledByUser,
+  EventTypeDisabledByTimeout,
+  EventTypeMouse,
+  EventTypeKey,
+  EventTypeFlags,
+  EventTypeWheel,
+  EventTypeAppWillLaunch,
+  EventTypeAppLaunched,
+  EventTypeAppTerminated,
+  EventTypeAppHid,
+  EventTypeAppUnhid,
+  EventTypeAppActivated,
+  EventTypeAppDeactivated,
+  EventTypeInputSourceChanged,
+} OpticonEventType;
+
 
 @interface AppDelegate ()
 
 @property (nonatomic) SqlDatabase* db;
 @property (nonatomic) SqlStatement* insertEventStatement;
 @property (nonatomic) F64 pendingTime;
-@property (nonatomic) Uns pendingType;
+@property (nonatomic) OpticonEventType pendingType;
 @property (nonatomic) Int pendingPid;
 @property (nonatomic) Int pendingFlags;
 @property (nonatomic) QKMutableStructArray* pendingEventData;
+@property (nonatomic) BOOL isLoggingEnabled;
+@property (nonatomic) NSStatusItem* statusItem;
+@property (nonatomic) CFMachPortRef eventTap;
+@property (nonatomic) NSAttributedString* iconAttrStrEnabled;
+@property (nonatomic) NSAttributedString* iconAttrStrDisabled;
 
 @end
 
@@ -49,22 +78,23 @@ static inline NSTimeInterval timestampForEvent(CGEventRef event) {
 }
 
 
-CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType eventType, CGEventRef event, void* ctx) {
+CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEventRef event, void* ctx) {
   F64 time = timestampForEvent(event);
-  Int type = 0;
+  OpticonEventType type = EventTypeUnknown;
   Int pid = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
   Int flags = CGEventGetFlags(event);
   void* ptr = NULL;
   I32 len = 0;
   U8 isMouseMoving = 0;
-  switch (eventType) {
+  switch (cgEventType) {
     case kCGEventNull:
     case kCGEventTabletPointer:
     case kCGEventTabletProximity:
       return NULL;
-    case kCGEventFlagsChanged:
-      type = 3;
-      break;
+    case kCGEventTapDisabledByUserInput:  type = EventTypeDisabledByUser; break;
+    case kCGEventTapDisabledByTimeout:    type = EventTypeDisabledByTimeout; break;
+    case kCGEventFlagsChanged:            type = EventTypeFlags; break;
+
     case kCGEventMouseMoved:
     case kCGEventLeftMouseDragged:
     case kCGEventRightMouseDragged:
@@ -76,12 +106,12 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType eventType, CGEven
     case kCGEventRightMouseUp:
     case kCGEventOtherMouseDown:
     case kCGEventOtherMouseUp: {
-      type = 1;
+      type = EventTypeMouse;
       CGPoint loc = CGEventGetLocation(event);
       U16 pressure = CGEventGetDoubleValueField(event, kCGMouseEventPressure) * max_U16; // double value is between 0 and 1.
-      U8 down = (eventType == kCGEventLeftMouseDown || eventType == kCGEventLeftMouseDragged ||
-                 eventType == kCGEventRightMouseDown || eventType == kCGEventRightMouseDragged ||
-                 eventType == kCGEventOtherMouseDown || eventType == kCGEventOtherMouseDragged);
+      U8 down = (cgEventType == kCGEventLeftMouseDown || cgEventType == kCGEventLeftMouseDragged ||
+                 cgEventType == kCGEventRightMouseDown || cgEventType == kCGEventRightMouseDragged ||
+                 cgEventType == kCGEventOtherMouseDown || cgEventType == kCGEventOtherMouseDragged);
       MouseEvent me = {
         .time=time,
         .x=(I16)loc.x,
@@ -100,19 +130,19 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType eventType, CGEven
     }
     case kCGEventKeyDown:
     case kCGEventKeyUp: {
-      type = 2;
+      type = EventTypeKey;
       KeyEvent ke = {
         .time=time,
         .keycode=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode),
         .keyboard_type=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeyboardType),
         .autorepeat=(U8)CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat),
-        .down=(eventType == kCGEventKeyDown),
+        .down=(cgEventType == kCGEventKeyDown),
       };
       ptr = &ke;
       len = sizeof(ke);
     }
     case kCGEventScrollWheel: {
-      type = 4;
+      type = EventTypeWheel;
       WheelEvent we = {
         .time=time,
         .delta1=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis1),
@@ -139,12 +169,12 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
   auto delegate = (__bridge AppDelegate*)observer;
   TISInputSourceRef inputSource = TISCopyCurrentKeyboardLayoutInputSource();
   auto inputId = (__bridge NSString*)TISGetInputSourceProperty(inputSource, kTISPropertyInputSourceID);
-  [delegate logTime:[NSDate posixTime] typeName:inputSourceName pid:0 string:inputId];
+  [delegate logTime:[NSDate posixTime] type:EventTypeInputSourceChanged pid:0 string:inputId];
 }
 
 
 - (void)logTime:(F64)time
-           type:(Int)type
+           type:(OpticonEventType)type
             pid:(Int)pid
           flags:(Int)flags
            data:(NSData*)data {
@@ -162,13 +192,19 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 - (void)flushEvents {
   if (_pendingEventData.length) {
     [self logTime:_pendingTime type:_pendingType pid:_pendingPid flags:_pendingFlags data:_pendingEventData.data];
+    _pendingTime = 0;
+    _pendingType = EventTypeUnknown;
+    _pendingPid = 0;
+    _pendingFlags = 0;
+    [_pendingEventData resetWithElSize:0];
   }
 }
 
 
-- (void)logTime:(F64)time type:(Int)type pid:(Int)pid flags:(Int)flags ptr:(void*)ptr len:(I32)len {
+- (void)logTime:(F64)time type:(OpticonEventType)type pid:(Int)pid flags:(Int)flags ptr:(void*)ptr len:(I32)len {
   if (type != _pendingType || pid != _pendingPid || flags != _pendingFlags) {
     [self flushEvents];
+    _pendingTime = time;
     _pendingType = type;
     _pendingPid = pid;
     _pendingFlags = flags;
@@ -179,26 +215,21 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 }
 
 
-- (void)logTime:(F64)time typeName:(NSString*)name pid:(Int)pid string:(NSString*)string {
-  Int type = [nonstandardEventTypes[name] intValue];
+- (void)logTime:(F64)time type:(OpticonEventType)type pid:(Int)pid string:(NSString*)string {
+  [self flushEvents];
   [self logTime:time type:type pid:pid flags:0 data:string.asUtf8Data];
 }
 
 
-static auto nonstandardEventTypes =
-  @{@"mouse": @1,
-    @"key":   @2,
-    @"flag":  @3,
-    @"wheel": @4,
-    NSWorkspaceWillLaunchApplicationNotification:     @101,
-    NSWorkspaceDidLaunchApplicationNotification:      @102,
-    NSWorkspaceDidTerminateApplicationNotification:   @103,
-    NSWorkspaceDidHideApplicationNotification:        @104,
-    NSWorkspaceDidUnhideApplicationNotification:      @105,
-    NSWorkspaceDidActivateApplicationNotification:    @106,
-    NSWorkspaceDidDeactivateApplicationNotification:  @107,
-    inputSourceName: @201,
-    };
+static auto noteEventTypes =
+@{NSWorkspaceWillLaunchApplicationNotification:     @(EventTypeAppWillLaunch),
+  NSWorkspaceDidLaunchApplicationNotification:      @(EventTypeAppLaunched),
+  NSWorkspaceDidTerminateApplicationNotification:   @(EventTypeAppTerminated),
+  NSWorkspaceDidHideApplicationNotification:        @(EventTypeAppHid),
+  NSWorkspaceDidUnhideApplicationNotification:      @(EventTypeAppUnhid),
+  NSWorkspaceDidActivateApplicationNotification:    @(EventTypeAppActivated),
+  NSWorkspaceDidDeactivateApplicationNotification:  @(EventTypeAppDeactivated),
+  };
 
 
 - (void)workspaceNote:(NSNotification*)note {
@@ -206,8 +237,8 @@ static auto nonstandardEventTypes =
   F64 time = [NSDate posixTime]; // get this as soon as possible, for accuracy (probably negligable).
   // CGEventType numbers are low (apparently bit positions); we create additional id numbers well past those.
   NSRunningApplication* app = note.userInfo[NSWorkspaceApplicationKey];
-  Int type = [nonstandardEventTypes[note.name] intValue];
-  [self logTime:time type:type pid:app.processIdentifier flags:0 data:app.bundleIdentifier.asUtf8Data];
+  auto type = (OpticonEventType)[noteEventTypes[note.name] intValue];
+  [self logTime:time type:type pid:app.processIdentifier string:app.bundleIdentifier];
 }
 
 
@@ -281,7 +312,7 @@ static auto nonstandardEventTypes =
   | CGEventMaskBit(kCGEventOtherMouseDragged)
   ;
   
-  CFMachPortRef tap =
+  _eventTap =
   CGEventTapCreate(kCGAnnotatedSessionEventTap, // tap events as they flow into applications (as late as possible).
                    kCGTailAppendEventTap, // insert tap after any existing filters.
                    kCGEventTapOptionListenOnly, // passive tap.
@@ -289,9 +320,8 @@ static auto nonstandardEventTypes =
                    eventTapCallback,
                    (__bridge void*)self);
   
-  NSLog(@"tap: %p; enabled: %d", tap, CGEventTapIsEnabled(tap));
-  
-  CFRunLoopSourceRef source = CFMachPortCreateRunLoopSource(NULL, tap, 0);
+  //NSLog(@"tap: %p; enabled: %d", _eventTap, CGEventTapIsEnabled(_eventTap));
+  CFRunLoopSourceRef source = CFMachPortCreateRunLoopSource(NULL, _eventTap, 0);
   CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopCommonModes);
   CFRelease(source);
   
@@ -304,13 +334,50 @@ static auto nonstandardEventTypes =
 }
 
 
+- (void)setIsLoggingEnabled:(BOOL)isLoggingEnabled {
+  BOOL e = !!isLoggingEnabled;
+  if (_isLoggingEnabled == e) return;
+  NSLog(@"logging enabled: %d", e);
+  _isLoggingEnabled = e;
+  _statusItem.attributedTitle = e ? _iconAttrStrEnabled : _iconAttrStrDisabled;
+  _statusItem.toolTip = e ? tooltipEnabled : tooltipDisabled;
+  CGEventTapEnable(_eventTap, e);
+}
+
+
+- (void)toggleIsLoggingEnabled {
+  self.isLoggingEnabled = !_isLoggingEnabled;
+}
+
+
+- (void)setupStatusItem {
+  auto attrs = @{NSFontAttributeName: [NSFont boldSystemFontOfSize:24]};
+  _iconAttrStrEnabled = [[NSAttributedString alloc] initWithString:iconStringEnabled attributes:attrs];
+  _iconAttrStrDisabled = [[NSAttributedString alloc] initWithString:iconStringDisabled attributes:attrs];
+
+  NSStatusBar* statusBar = [NSStatusBar systemStatusBar];
+  _statusItem = [statusBar statusItemWithLength:NSSquareStatusItemLength];
+  _statusItem.highlightMode = YES;
+  _statusItem.target = self;
+  _statusItem.action = @selector(toggleIsLoggingEnabled);
+}
+
 
 - (void)applicationDidFinishLaunching:(NSNotification*)note {
   calculateStartTime();
-  
   [self setupDb];
+  [self setupStatusItem];
   [self setupMonitors];
+  self.isLoggingEnabled = YES;
 }
+
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+  // TODO: explicitly remove NSStatusBar icon from the menu bar?
+  return NSTerminateNow;
+}
+
 
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
