@@ -53,6 +53,10 @@
 		EC777B1818DD01AA00EC4D37 /* SqlDatabase.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777AEA18DD01AA00EC4D37 /* SqlDatabase.mm */; };
 		EC777B1918DD01AA00EC4D37 /* SqlStatement.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777AEC18DD01AA00EC4D37 /* SqlStatement.mm */; };
 		EC777B1B18DD056800EC4D37 /* libsqlite3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EC777B1A18DD056800EC4D37 /* libsqlite3.a */; };
+		ECA24E2E1902E74D00E2DF82 /* NSApplication+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A5318DD012000EC4D37 /* NSApplication+QK.mm */; };
+		ECA24E2F1902E74D00E2DF82 /* NSMenu+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A5518DD012000EC4D37 /* NSMenu+QK.mm */; };
+		ECA24E301902E74D00E2DF82 /* NSMenuItem+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A5718DD012000EC4D37 /* NSMenuItem+QK.mm */; };
+		ECA24E311902E74D00E2DF82 /* NSView+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A5918DD012000EC4D37 /* NSView+QK.mm */; };
 		ECB8911018BFE7B200B8F670 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB890FC18BFD6D000B8F670 /* CoreFoundation.framework */; };
 		ECB8911318BFE7B200B8F670 /* opticon-askpass.c in Sources */ = {isa = PBXBuildFile; fileRef = ECB8911218BFE7B200B8F670 /* opticon-askpass.c */; };
 		ECB8911A18BFEFB200B8F670 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB8911918BFEFB200B8F670 /* Carbon.framework */; };
@@ -425,7 +429,7 @@
 		EC777AEB18DD01AA00EC4D37 /* SqlStatement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SqlStatement.h; sourceTree = "<group>"; };
 		EC777AEC18DD01AA00EC4D37 /* SqlStatement.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SqlStatement.mm; sourceTree = "<group>"; };
 		EC777B1A18DD056800EC4D37 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = lib/libsqlite3.a; sourceTree = "<group>"; };
-		ECB890F518BE57E600B8F670 /* info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = info.plist; sourceTree = "<group>"; };
+		ECB890F518BE57E600B8F670 /* opticon-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "opticon-Info.plist"; sourceTree = "<group>"; };
 		ECB890FC18BFD6D000B8F670 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		ECB8910918BFD9E100B8F670 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		ECB8910F18BFE7B100B8F670 /* opticon-askpass */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "opticon-askpass"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -461,7 +465,7 @@
 		EC2CD76018BE4FAC00C8E45D = {
 			isa = PBXGroup;
 			children = (
-				ECB890F518BE57E600B8F670 /* info.plist */,
+				ECB890F518BE57E600B8F670 /* opticon-Info.plist */,
 				EC2CD7A018BE541A00C8E45D /* res */,
 				EC2CD7A218BE541A00C8E45D /* src-app */,
 				ECB8911118BFE7B200B8F670 /* src-askpass */,
@@ -1289,6 +1293,10 @@
 				EC777AF418DD01AA00EC4D37 /* CCAGLLayer.mm in Sources */,
 				EC777B1318DD01AA00EC4D37 /* QKPixFmt.mm in Sources */,
 				EC777B0A18DD01AA00EC4D37 /* QKBinding.mm in Sources */,
+				ECA24E2E1902E74D00E2DF82 /* NSApplication+QK.mm in Sources */,
+				ECA24E2F1902E74D00E2DF82 /* NSMenu+QK.mm in Sources */,
+				ECA24E301902E74D00E2DF82 /* NSMenuItem+QK.mm in Sources */,
+				ECA24E311902E74D00E2DF82 /* NSView+QK.mm in Sources */,
 				EC777AFD18DD01AA00EC4D37 /* NSDictionary+QK.mm in Sources */,
 				EC777B1718DD01AA00EC4D37 /* qk-sql-util.mm in Sources */,
 				EC777B1618DD01AA00EC4D37 /* QKTag.mm in Sources */,
@@ -1419,7 +1427,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "src-app/prefix.pch";
-				INFOPLIST_FILE = info.plist;
+				INFOPLIST_FILE = "opticon-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/submodules/libqk/submodules/libqk-built-mac/lib",
@@ -1436,7 +1444,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "src-app/prefix.pch";
-				INFOPLIST_FILE = info.plist;
+				INFOPLIST_FILE = "opticon-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/submodules/libqk/submodules/libqk-built-mac/lib",
