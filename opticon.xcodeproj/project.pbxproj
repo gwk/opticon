@@ -1432,6 +1432,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/submodules/libqk/submodules/libqk-built-mac/lib",
 				);
+				OTHER_CFLAGS = "-mms-bitfields";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -1449,6 +1450,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/submodules/libqk/submodules/libqk-built-mac/lib",
 				);
+				OTHER_CFLAGS = "-mms-bitfields";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

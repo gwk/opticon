@@ -12,7 +12,7 @@
 #import "event-structs.h"
 #import "AppDelegate.h"
 
-#define DB_ALWAYS_RESETS 1
+#define DB_ALWAYS_RESETS DEBUG && 1
 
 AppDelegate* appDelegate;
 
@@ -140,13 +140,14 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEv
       };
       ptr = &ke;
       len = sizeof(ke);
+      break;
     }
     case kCGEventScrollWheel: {
       type = EventTypeWheel;
       WheelEvent we = {
         .time=time,
-        .delta1=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis1),
-        .delta2=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis2),
+        .dx=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis1),
+        .dy=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis2),
       };
       ptr = &we;
       len = sizeof(we);
@@ -330,14 +331,14 @@ static auto noteEventTypes =
   // this is set in System Preferences -> Security and Privacy -> Privacy -> Accessibility.
   auto options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
   BOOL isTrusted = AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
-  NSLog(@"accessibility trusted: %d", isTrusted);
+  NSLog(@"accessibility trusted: %@", BIT_YN(isTrusted));
 }
 
 
 - (void)setIsLoggingEnabled:(BOOL)isLoggingEnabled {
   BOOL e = !!isLoggingEnabled;
   if (_isLoggingEnabled == e) return;
-  NSLog(@"logging enabled: %d", e);
+  NSLog(@"event logging enabled: %@", BIT_YN(e));
   _isLoggingEnabled = e;
   _statusItem.attributedTitle = e ? _iconAttrStrEnabled : _iconAttrStrDisabled;
   _statusItem.toolTip = e ? tooltipEnabled : tooltipDisabled;
@@ -364,6 +365,7 @@ static auto noteEventTypes =
 
 
 - (void)applicationDidFinishLaunching:(NSNotification*)note {
+  assert_struct_types_are_valid();
   calculateStartTime();
   [self setupDb];
   [self setupStatusItem];
