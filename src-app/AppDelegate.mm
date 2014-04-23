@@ -38,6 +38,7 @@ typedef enum {
   EventTypeAppActivated,
   EventTypeAppDeactivated,
   EventTypeInputSourceChanged,
+  EventTypeInputSourceQueried,
 } OpticonEventType;
 
 
@@ -60,6 +61,37 @@ typedef enum {
 
 
 @implementation AppDelegate
+
+
+#pragma mark - NSApplicationDelegate
+
+
+- (void)applicationDidFinishLaunching:(NSNotification*)note {
+  assert_struct_types_are_valid();
+  calculateStartTime();
+  [self setupDb];
+  [self setupStatusItem];
+  [self logInputSource:EventTypeInputSourceQueried];
+  [self setupMonitors];
+  self.isLoggingEnabled = YES;
+}
+
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
+{
+  // TODO: explicitly remove NSStatusBar icon from the menu bar?
+  return NSTerminateNow;
+}
+
+
+
+- (void)applicationWillTerminate:(NSNotification *)notification {
+  [self flushEvents];
+  [_db close];
+}
+
+
+#pragma mark - AppDelegate
 
 
 static NSTimeInterval startTime;
@@ -168,9 +200,7 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
                                 const void *object,
                                 CFDictionaryRef userInfo) {
   auto delegate = (__bridge AppDelegate*)observer;
-  TISInputSourceRef inputSource = TISCopyCurrentKeyboardLayoutInputSource();
-  auto inputId = (__bridge NSString*)TISGetInputSourceProperty(inputSource, kTISPropertyInputSourceID);
-  [delegate logTime:[NSDate posixTime] type:EventTypeInputSourceChanged pid:0 string:inputId];
+  [delegate logInputSource:EventTypeInputSourceChanged];
 }
 
 
@@ -219,6 +249,14 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 - (void)logTime:(F64)time type:(OpticonEventType)type pid:(Int)pid string:(NSString*)string {
   [self flushEvents];
   [self logTime:time type:type pid:pid flags:0 data:string.asUtf8Data];
+}
+
+
+- (void)logInputSource:(OpticonEventType)type {
+  F64 time = [NSDate posixTime];
+  TISInputSourceRef inputSource = TISCopyCurrentKeyboardLayoutInputSource();
+  auto inputId = (__bridge NSString*)TISGetInputSourceProperty(inputSource, kTISPropertyInputSourceID);
+  [self logTime:time type:type pid:0 string:inputId];
 }
 
 
@@ -361,30 +399,6 @@ static auto noteEventTypes =
   _statusItem.highlightMode = YES;
   _statusItem.target = self;
   _statusItem.action = @selector(toggleIsLoggingEnabled);
-}
-
-
-- (void)applicationDidFinishLaunching:(NSNotification*)note {
-  assert_struct_types_are_valid();
-  calculateStartTime();
-  [self setupDb];
-  [self setupStatusItem];
-  [self setupMonitors];
-  self.isLoggingEnabled = YES;
-}
-
-
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
-{
-  // TODO: explicitly remove NSStatusBar icon from the menu bar?
-  return NSTerminateNow;
-}
-
-
-
-- (void)applicationWillTerminate:(NSNotification *)notification {
-  [self flushEvents];
-  [_db close];
 }
 
 

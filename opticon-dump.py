@@ -22,6 +22,7 @@ event_type_names = [
   'AppActivated',
   'AppDeactivated',
   'InputSourceChanged',
+  'InputSourceQueried',
 ]
 
 
