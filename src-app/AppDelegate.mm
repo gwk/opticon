@@ -146,42 +146,60 @@ static unichar unicharForKey(U16 keyCode, CGEventFlags flags, U32 keyboardType, 
 }
 
 
-CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEventRef event, void* ctx) {
-  F64 time = timestampForEvent(event);
-  OpticonEventType type = EventTypeUnknown;
-  Int pid = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
-  U64 flags = CGEventGetFlags(event);
-  void* ptr = NULL;
-  I32 len = 0;
-  U8 isMouseMoving = 0;
+OpticonEventType eventTypeForCGType(CGEventType cgEventType) {
   switch (cgEventType) {
     case kCGEventNull:
     case kCGEventTabletPointer:
     case kCGEventTabletProximity:
-      return NULL;
-    case kCGEventTapDisabledByUserInput:  type = EventTypeDisabledByUser; break;
-    case kCGEventTapDisabledByTimeout:    type = EventTypeDisabledByTimeout; break;
-    case kCGEventFlagsChanged:            type = EventTypeFlags; break;
-
+      return EventTypeUnknown;
+    case kCGEventTapDisabledByUserInput:
+      return EventTypeDisabledByUser;
+    case kCGEventTapDisabledByTimeout:
+      return EventTypeDisabledByTimeout;
+    case kCGEventFlagsChanged:
+      return EventTypeFlags;
     case kCGEventMouseMoved:
     case kCGEventLeftMouseDragged:
     case kCGEventRightMouseDragged:
     case kCGEventOtherMouseDragged:
-      isMouseMoving = 1;
     case kCGEventLeftMouseDown:
     case kCGEventLeftMouseUp:
     case kCGEventRightMouseDown:
     case kCGEventRightMouseUp:
     case kCGEventOtherMouseDown:
-    case kCGEventOtherMouseUp: {
-      type = EventTypeMouse;
+    case kCGEventOtherMouseUp:
+      return EventTypeMouse;
+    case kCGEventKeyDown:
+    case kCGEventKeyUp:
+      return EventTypeKey;
+    case kCGEventScrollWheel:
+      return EventTypeWheel;
+    default:
+      return EventTypeUnknown;
+  }
+}
+
+
+CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEventRef event, void* ctx) {
+  F64 time = timestampForEvent(event);
+  OpticonEventType type = eventTypeForCGType(cgEventType);
+  Int pid = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
+  U64 flags = CGEventGetFlags(event);
+  auto delegate = (__bridge AppDelegate*)ctx;
+  F64 refTime = [delegate flushEventsForTime:time type:type pid:pid flags:flags];
+  F32 relTime = time - refTime;
+  void* ptr = NULL;
+  switch (type) {
+    case EventTypeMouse: {
       CGPoint loc = CGEventGetLocation(event);
       U16 pressure = CGEventGetDoubleValueField(event, kCGMouseEventPressure) * max_U16; // double value is between 0 and 1.
       U8 down = (cgEventType == kCGEventLeftMouseDown || cgEventType == kCGEventLeftMouseDragged ||
                  cgEventType == kCGEventRightMouseDown || cgEventType == kCGEventRightMouseDragged ||
                  cgEventType == kCGEventOtherMouseDown || cgEventType == kCGEventOtherMouseDragged);
+      U8 moving = (cgEventType &
+                   (kCGEventMouseMoved |kCGEventLeftMouseDragged | kCGEventRightMouseDragged | kCGEventOtherMouseDragged));
       MouseEvent me = {
-        .time=time,
+        .time=relTime,
         .x=(I16)loc.x,
         .y=(I16)loc.y,
         .pressure=pressure,
@@ -190,22 +208,19 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEv
         .clicks=(U8)CGEventGetIntegerValueField(event, kCGMouseEventClickState),
         .subtype=(U8)CGEventGetIntegerValueField(event, kCGMouseEventClickState),
         .down=down,
-        .moving=isMouseMoving,
+        .moving=moving,
       };
       ptr = &me;
-      len = sizeof(me);
       break;
     }
-    case kCGEventKeyDown:
-    case kCGEventKeyUp: {
-      type = EventTypeKey;
+    case EventTypeKey: {
       U16 keycode = (U16)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
       U32 keyboard = (U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeyboardType);
       U8 autorepeat = (U8)CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat);
       U8 down = (cgEventType == kCGEventKeyDown);
       U16 character = unicharForKey(keycode, (U32)flags, keyboard, down, autorepeat);
       KeyEvent ke = {
-        .time=time,
+        .time=relTime,
         .keycode=keycode,
         .character=character,
         .keyboard=keyboard,
@@ -213,23 +228,20 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEv
         .down=down,
       };
       ptr = &ke;
-      len = sizeof(ke);
       break;
     }
-    case kCGEventScrollWheel: {
-      type = EventTypeWheel;
+    case EventTypeWheel: {
       WheelEvent we = {
-        .time=time,
+        .time=relTime,
         .dx=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis1),
         .dy=(I32)CGEventGetIntegerValueField(event, kCGScrollWheelEventPointDeltaAxis2),
       };
       ptr = &we;
-      len = sizeof(we);
       break;
     }
+    default: return NULL;
   }
-  auto delegate = (__bridge AppDelegate*)ctx;
-  [delegate logTime:time type:type pid:pid flags:flags ptr:ptr len:len];
+  [delegate appendEventDataPtr:ptr];
   return NULL;
 }
 
@@ -262,28 +274,27 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 }
 
 
-- (void)flushEvents {
-  if (_pendingEventData.length) {
-    [self logTime:_pendingTime type:_pendingType pid:_pendingPid flags:_pendingFlags data:_pendingEventData.data];
-    _pendingTime = 0;
-    _pendingType = EventTypeUnknown;
-    _pendingPid = 0;
-    _pendingFlags = 0;
-    [_pendingEventData resetWithElSize:0];
-  }
-}
-
-
-- (void)logTime:(F64)time type:(OpticonEventType)type pid:(Int)pid flags:(U64)flags ptr:(void*)ptr len:(I32)len {
-  if (type != _pendingType || pid != _pendingPid || flags != _pendingFlags) {
-    [self flushEvents];
+- (F64)flushEventsForTime:(F64)time type:(OpticonEventType)type pid:(Int)pid flags:(U64)flags {
+  if (!time || !_pendingTime || type != _pendingType || pid != _pendingPid || flags != _pendingFlags) {
+    if (_pendingEventData.length) {
+      [self logTime:_pendingTime type:_pendingType pid:_pendingPid flags:_pendingFlags data:_pendingEventData.data];
+    }
     _pendingTime = time;
     _pendingType = type;
     _pendingPid = pid;
     _pendingFlags = flags;
-    [_pendingEventData resetWithElSize:len];
+    [_pendingEventData clear];
   }
-  qk_assert(_pendingEventData.elSize == len, @"mismatched elSize: %d; len: %d", _pendingEventData.elSize, len);
+  return _pendingTime;
+}
+
+
+- (void)flushEvents {
+  [self flushEventsForTime:0 type:EventTypeUnknown pid:0 flags:0];
+}
+
+
+- (void)appendEventDataPtr:(void*)ptr {
   [_pendingEventData appendEl:ptr];
 }
 
@@ -357,7 +368,7 @@ static auto noteEventTypes =
 
 
 - (void)setupMonitors {
-  _pendingEventData = [QKMutableStructArray withElSize:0];
+  _pendingEventData = [QKMutableStructArray withElSize:eventSize];
   [self addNote:NSWorkspaceWillLaunchApplicationNotification];
   [self addNote:NSWorkspaceDidLaunchApplicationNotification];
   [self addNote:NSWorkspaceDidTerminateApplicationNotification];

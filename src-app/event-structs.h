@@ -9,7 +9,7 @@
 
 // TODO: fit up/down and moving bits in.
 typedef struct {
-  F64 time;
+  F32 time;
   I16 x;
   I16 y;
   U16 pressure; // originally a double from 0 to 1. not very important, so ok to compress.
@@ -23,7 +23,7 @@ typedef struct {
 
 
 typedef struct {
-  F64 time;
+  F32 time;
   U16 keycode;
   U16 character;
   U32 keyboard : 30;
@@ -33,15 +33,18 @@ typedef struct {
 
 
 typedef struct {
-  F64 time;
+  F32 time;
   I32 dx;
   I32 dy;
 } WheelEvent;
 
 
+// to simplify buffer implementation, we currently assume all event types are the same size.
+static const Int eventSize = sizeof(MouseEvent);
+
 static void assert_struct_types_are_valid() {
-  qk_assert(sizeof(MouseEvent) == 16, @"bad struct size for MouseEvent.");
-  qk_assert(sizeof(KeyEvent) == 16,   @"bad struct size for KeyEvent.");
-  qk_assert(sizeof(WheelEvent) == 16, @"bad struct size for WheelEvent.");
+  qk_assert(sizeof(MouseEvent) == 12, @"bad struct size for MouseEvent.");
+  qk_assert(sizeof(KeyEvent) == 12,   @"bad struct size for KeyEvent.");
+  qk_assert(sizeof(WheelEvent) == 12, @"bad struct size for WheelEvent.");
 }
 

@@ -26,9 +26,9 @@ event_type_names = [
 ]
 
 
-mouse_struct  = struct.Struct('dhhHBB')
-key_struct    = struct.Struct('dHHI')
-wheel_struct  = struct.Struct('dii')
+mouse_struct  = struct.Struct('fhhHBB')
+key_struct    = struct.Struct('fHHI')
+wheel_struct  = struct.Struct('fii')
 
 pressure_max = char_inv = (1<<16) - 1
 
