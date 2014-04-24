@@ -27,10 +27,10 @@ event_type_names = [
 
 
 mouse_struct  = struct.Struct('dhhHBB')
-key_struct    = struct.Struct('dII')
+key_struct    = struct.Struct('dHHI')
 wheel_struct  = struct.Struct('dii')
 
-pressure_max = (1<<16) - 1
+pressure_max = char_inv = (1<<16) - 1
 
 db_path = os.path.expanduser('~/Documents/opticon-debug.sqlite')
 print('path:', db_path)
@@ -57,11 +57,12 @@ for row in c:
         time, x, y, pressure, event_num, bttn, click, sub, down, move))
   elif type_name == 'Key':
     print()
-    for time, code, bits in key_struct.iter_unpack(data):
+    for time, code, char_ord, bits in key_struct.iter_unpack(data):
       kb    = (bits >> 0) & 0x3FFFFFFF
       ar    = (bits >> 30) & 0b1
       down  = (bits >> 31) & 0b1
-      print('  time:{:010.2f} code:{:02X} kb:{:02X} ar:{:01} down:{:01}'.format(time, code, kb, ar, down))
+      char = chr(char_ord)
+      print('  time:{:010.2f} code:{:02X} char:{} kb:{:02X} ar:{:01} down:{:01}'.format(time, code, repr(char), kb, ar, down))
   elif type_name == 'Wheel':
     print()
     for time, dx, dy in wheel_struct.iter_unpack(data):

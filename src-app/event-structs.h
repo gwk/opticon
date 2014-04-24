@@ -13,9 +13,9 @@ typedef struct {
   I16 x;
   I16 y;
   U16 pressure; // originally a double from 0 to 1. not very important, so ok to compress.
-  U8 event_number; // event number can be much larger than 256, but increments sequentially, so wrapped values are meaningful.
-  U8 button_number: 2; // not clear what the technical maximum is, but 2 is the observed max.
-  U8 click_state : 2; // single, double, or triple click.
+  U8 event_num; // event number can be much larger than 256, but increments sequentially, so wrapped values are meaningful.
+  U8 button: 2; // not clear what the technical maximum is, but 2 is the observed max.
+  U8 clicks : 2; // single, double, or triple click.
   U8 subtype : 2; // CGEventMouseSubtype max value is 2.
   U8 down : 1; // boolean representing click-down and dragging.
   U8 moving : 1; // bolean representing move/drag.
@@ -24,8 +24,9 @@ typedef struct {
 
 typedef struct {
   F64 time;
-  U32 keycode;
-  U32 keyboard_type : 30;
+  U16 keycode;
+  U16 character;
+  U32 keyboard : 30;
   U32 autorepeat : 1; // boolean.
   U32 down : 1; // boolean.
 } KeyEvent;

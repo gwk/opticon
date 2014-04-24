@@ -49,7 +49,7 @@ typedef enum {
 @property (nonatomic) F64 pendingTime;
 @property (nonatomic) OpticonEventType pendingType;
 @property (nonatomic) Int pendingPid;
-@property (nonatomic) Int pendingFlags;
+@property (nonatomic) U64 pendingFlags;
 @property (nonatomic) QKMutableStructArray* pendingEventData;
 @property (nonatomic) BOOL isLoggingEnabled;
 @property (nonatomic) NSStatusItem* statusItem;
@@ -110,11 +110,47 @@ static inline NSTimeInterval timestampForEvent(CGEventRef event) {
 }
 
 
+static unichar unicharForKey(U16 keyCode, CGEventFlags flags, U32 keyboardType, BOOL down, BOOL autorepeat) {
+  TISInputSourceRef inputSource = TISCopyCurrentKeyboardLayoutInputSource(); // TODO: store this to avoid lookup?
+  CFDataRef layoutData = (CFDataRef)TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData);
+  const UCKeyboardLayout* layout = (const UCKeyboardLayout*)CFDataGetBytePtr(layoutData);
+  UInt16 action = (autorepeat ? kUCKeyActionAutoKey : (down ? kUCKeyActionDown : kUCKeyActionUp));
+  const UniCharCount maxLen = 2; // max possible is 255; supposedly in practice output is usually limited to 4.
+  UInt32 keysDown = 0;
+  UniCharCount len = 0;
+  UniChar chars[maxLen];
+  
+  // modifiers are undocumented as far as I can tell.
+  // credit to @jollyjinx for the hint: "cmd=1,s=2,o=8,ctrl=16"
+  // https://twitter.com/jollyjinx/status/8024830691
+  U32 modifiers = 0;
+  if (flags & kCGEventFlagMaskAlphaShift) modifiers |= 2; // is this correct? what is alpha shift?
+  if (flags & kCGEventFlagMaskShift)      modifiers |= 2;
+  if (flags & kCGEventFlagMaskControl)    modifiers |= 16;
+  if (flags & kCGEventFlagMaskAlternate)  modifiers |= 8;
+  if (flags & kCGEventFlagMaskCommand)    modifiers |= 1;
+
+  UCKeyTranslate(layout,
+                 keyCode,
+                 action,
+                 modifiers, // supposedly in EventRecord.modifiers format, which is a mac classic quicktime type.
+                 keyboardType,
+                 kUCKeyTranslateNoDeadKeysBit,
+                 &keysDown,
+                 maxLen,
+                 &len,
+                 chars);
+  
+  if (len != 1) return USHRT_MAX;
+  return chars[0];
+}
+
+
 CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEventRef event, void* ctx) {
   F64 time = timestampForEvent(event);
   OpticonEventType type = EventTypeUnknown;
   Int pid = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
-  Int flags = CGEventGetFlags(event);
+  U64 flags = CGEventGetFlags(event);
   void* ptr = NULL;
   I32 len = 0;
   U8 isMouseMoving = 0;
@@ -149,9 +185,9 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEv
         .x=(I16)loc.x,
         .y=(I16)loc.y,
         .pressure=pressure,
-        .event_number=(U8)CGEventGetIntegerValueField(event, kCGMouseEventNumber),
-        .button_number=(U8)CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber),
-        .click_state=(U8)CGEventGetIntegerValueField(event, kCGMouseEventClickState),
+        .event_num=(U8)CGEventGetIntegerValueField(event, kCGMouseEventNumber),
+        .button=(U8)CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber),
+        .clicks=(U8)CGEventGetIntegerValueField(event, kCGMouseEventClickState),
         .subtype=(U8)CGEventGetIntegerValueField(event, kCGMouseEventClickState),
         .down=down,
         .moving=isMouseMoving,
@@ -163,12 +199,18 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEv
     case kCGEventKeyDown:
     case kCGEventKeyUp: {
       type = EventTypeKey;
+      U16 keycode = (U16)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+      U32 keyboard = (U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeyboardType);
+      U8 autorepeat = (U8)CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat);
+      U8 down = (cgEventType == kCGEventKeyDown);
+      U16 character = unicharForKey(keycode, (U32)flags, keyboard, down, autorepeat);
       KeyEvent ke = {
         .time=time,
-        .keycode=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode),
-        .keyboard_type=(U32)CGEventGetIntegerValueField(event, kCGKeyboardEventKeyboardType),
-        .autorepeat=(U8)CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat),
-        .down=(cgEventType == kCGEventKeyDown),
+        .keycode=keycode,
+        .character=character,
+        .keyboard=keyboard,
+        .autorepeat=autorepeat,
+        .down=down,
       };
       ptr = &ke;
       len = sizeof(ke);
@@ -207,7 +249,7 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 - (void)logTime:(F64)time
            type:(OpticonEventType)type
             pid:(Int)pid
-          flags:(Int)flags
+          flags:(U64)flags
            data:(NSData*)data {
   
   auto s = _insertEventStatement;
@@ -232,7 +274,7 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
 }
 
 
-- (void)logTime:(F64)time type:(OpticonEventType)type pid:(Int)pid flags:(Int)flags ptr:(void*)ptr len:(I32)len {
+- (void)logTime:(F64)time type:(OpticonEventType)type pid:(Int)pid flags:(U64)flags ptr:(void*)ptr len:(I32)len {
   if (type != _pendingType || pid != _pendingPid || flags != _pendingFlags) {
     [self flushEvents];
     _pendingTime = time;
