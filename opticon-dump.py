@@ -5,6 +5,7 @@
 import os.path
 import sqlite3
 import struct
+import sys
 
 event_type_names = [
   'Unknown',
@@ -14,6 +15,8 @@ event_type_names = [
   'Key',
   'Flags',
   'Wheel',
+  'InputSourceChanged',
+  'InputSourceQueried',
   'AppWillLaunch',
   'AppLaunched',
   'AppTerminated',
@@ -21,8 +24,14 @@ event_type_names = [
   'AppUnhid',
   'AppActivated',
   'AppDeactivated',
-  'InputSourceChanged',
-  'InputSourceQueried',
+  'UserSessionActivated',
+  'UserSessionDeactivated',
+  'ActiveSpaceChanged',
+  'SystemWillPowerOff',
+  'SystemWoke',
+  'SystemWillSleep',
+  'SystemScreensSlept',
+  'SystemScreensWoke',
 ]
 
 
@@ -32,7 +41,10 @@ wheel_struct  = struct.Struct('fii')
 
 pressure_max = char_inv = (1<<16) - 1
 
-db_path = os.path.expanduser('~/Documents/opticon-debug.sqlite')
+if len(sys.argv) == 2:
+  db_path = sys.argv[1]
+else:
+  db_path = os.path.expanduser('~/Documents/opticon.sqlite')
 print('path:', db_path)
 
 db = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
@@ -67,5 +79,7 @@ for row in c:
     print()
     for time, dx, dy in wheel_struct.iter_unpack(data):
       print('  time:{:010.2f} dx:{:01} dy:{:01}'.format(time, dx, dy))
-  else: # data column is utf8
+  elif data: # data column is utf8
     print(data.decode())
+  else:
+    print()

@@ -1,5 +1,5 @@
 // Copyright 2014 George King.
-// Permission to use this file is granted in opticon/license.txt (ISC).
+// Permission to use this file is granted in license-opticon.txt (ISC license).
 
 
 #import <CoreGraphics/CGEvent.h>
@@ -16,8 +16,8 @@
 
 AppDelegate* appDelegate;
 
-static NSString* const iconStringEnabled = @"⎊";
-static NSString* const iconStringDisabled = @"⎉";
+static NSString* const iconStringEnabled = @"⎊"; // U+238A CIRCLED TRIANGLE DOWN.
+static NSString* const iconStringDisabled = @"⎉"; // U+2389 CIRCLED HORIZONTAL BAR WITH NOTCH.
 
 static NSString* const tooltipEnabled = @"Disable Opticon to avoid collecting sensitive event data.";
 static NSString* const tooltipDisabled = @"Enable Opticon to collect event data.";
@@ -30,6 +30,8 @@ typedef enum {
   EventTypeKey,
   EventTypeFlags,
   EventTypeWheel,
+  EventTypeInputSourceChanged,
+  EventTypeInputSourceQueried,
   EventTypeAppWillLaunch,
   EventTypeAppLaunched,
   EventTypeAppTerminated,
@@ -37,8 +39,14 @@ typedef enum {
   EventTypeAppUnhid,
   EventTypeAppActivated,
   EventTypeAppDeactivated,
-  EventTypeInputSourceChanged,
-  EventTypeInputSourceQueried,
+  EventTypeUserSessionActivated,
+  EventTypeUserSessionDeactivated,
+  EventTypeActiveSpaceChanged,
+  EventTypeSystemWillPowerOff,
+  EventTypeSystemWoke,
+  EventTypeSystemWillSleep,
+  EventTypeSystemScreensSlept,
+  EventTypeSystemScreensWoke,
 } OpticonEventType;
 
 
@@ -321,6 +329,14 @@ static auto noteEventTypes =
   NSWorkspaceDidUnhideApplicationNotification:      @(EventTypeAppUnhid),
   NSWorkspaceDidActivateApplicationNotification:    @(EventTypeAppActivated),
   NSWorkspaceDidDeactivateApplicationNotification:  @(EventTypeAppDeactivated),
+  NSWorkspaceSessionDidBecomeActiveNotification:    @(EventTypeUserSessionActivated),
+  NSWorkspaceSessionDidResignActiveNotification:    @(EventTypeUserSessionDeactivated),
+  NSWorkspaceActiveSpaceDidChangeNotification:      @(EventTypeActiveSpaceChanged),
+  NSWorkspaceWillPowerOffNotification:              @(EventTypeSystemWillPowerOff),
+  NSWorkspaceDidWakeNotification:                   @(EventTypeSystemWoke),
+  NSWorkspaceWillSleepNotification:                 @(EventTypeSystemWillSleep),
+  NSWorkspaceScreensDidSleepNotification:           @(EventTypeSystemScreensSlept),
+  NSWorkspaceScreensDidWakeNotification:            @(EventTypeSystemScreensWoke),
   };
 
 
@@ -376,6 +392,14 @@ static auto noteEventTypes =
   [self addNote:NSWorkspaceDidUnhideApplicationNotification];
   [self addNote:NSWorkspaceDidActivateApplicationNotification];
   [self addNote:NSWorkspaceDidDeactivateApplicationNotification];
+  [self addNote:NSWorkspaceSessionDidBecomeActiveNotification];
+  [self addNote:NSWorkspaceSessionDidResignActiveNotification];
+  [self addNote:NSWorkspaceActiveSpaceDidChangeNotification];
+  [self addNote:NSWorkspaceWillPowerOffNotification];
+  [self addNote:NSWorkspaceDidWakeNotification];
+  [self addNote:NSWorkspaceWillSleepNotification];
+  [self addNote:NSWorkspaceScreensDidSleepNotification];
+  [self addNote:NSWorkspaceScreensDidWakeNotification];
   
   auto dnc = CFNotificationCenterGetDistributedCenter();
   CFNotificationCenterAddObserver(dnc,

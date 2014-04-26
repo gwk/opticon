@@ -1,5 +1,5 @@
 // Copyright 2014 George King.
-// Permission to use this file is granted in opticon/license.txt (ISC).
+// Permission to use this file is granted in license-opticon.txt (ISC license).
 
 
 #if __OBJC__ && __cplusplus

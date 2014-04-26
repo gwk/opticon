@@ -10,6 +10,7 @@
 		EC2CD76D18BE4FAC00C8E45D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC2CD76C18BE4FAC00C8E45D /* Cocoa.framework */; };
 		EC2CD7A818BE541A00C8E45D /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC2CD7A418BE541A00C8E45D /* AppDelegate.mm */; };
 		EC2CD7A918BE541A00C8E45D /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC2CD7A518BE541A00C8E45D /* main.mm */; };
+		EC56541319096CA1008C6C11 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC2CD7A118BE541A00C8E45D /* Images.xcassets */; };
 		EC777AED18DD01AA00EC4D37 /* CALayer+QK.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A8918DD01AA00EC4D37 /* CALayer+QK.mm */; };
 		EC777AEE18DD01AA00EC4D37 /* QKTextLayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A8B18DD01AA00EC4D37 /* QKTextLayer.mm */; };
 		EC777AEF18DD01AA00EC4D37 /* qk-cg-util.mm in Sources */ = {isa = PBXBuildFile; fileRef = EC777A8E18DD01AA00EC4D37 /* qk-cg-util.mm */; };
@@ -60,7 +61,6 @@
 		ECB8911018BFE7B200B8F670 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB890FC18BFD6D000B8F670 /* CoreFoundation.framework */; };
 		ECB8911318BFE7B200B8F670 /* opticon-askpass.c in Sources */ = {isa = PBXBuildFile; fileRef = ECB8911218BFE7B200B8F670 /* opticon-askpass.c */; };
 		ECB8911A18BFEFB200B8F670 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB8911918BFEFB200B8F670 /* Carbon.framework */; };
-		ECE4B08318C3A516003D4657 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC2CD7A118BE541A00C8E45D /* Images.xcassets */; };
 		ECECE51518F0FB23007AAB51 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECB8911918BFEFB200B8F670 /* Carbon.framework */; };
 		ECFE977B18C4F32B00D89FE6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECFE977A18C4F32B00D89FE6 /* QuartzCore.framework */; };
 /* End PBXBuildFile section */
@@ -1152,8 +1152,9 @@
 			buildPhases = (
 				EC2CD76518BE4FAC00C8E45D /* Sources */,
 				EC2CD76618BE4FAC00C8E45D /* Frameworks */,
-				ECFE962318C3DF4E00D89FE6 /* ShellScript */,
+				EC56541419096CCD008C6C11 /* create Contents/Resources (Xcode bug workaround?) */,
 				EC2CD76718BE4FAC00C8E45D /* Resources */,
+				EC56541019096755008C6C11 /* Copy product to ~/bin */,
 			);
 			buildRules = (
 			);
@@ -1238,13 +1239,41 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ECE4B08318C3A516003D4657 /* Images.xcassets in Resources */,
+				EC56541319096CA1008C6C11 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		EC56541019096755008C6C11 /* Copy product to ~/bin */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy product to ~/bin";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\necho \"opticon product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\"\n";
+		};
+		EC56541419096CCD008C6C11 /* create Contents/Resources (Xcode bug workaround?) */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "create Contents/Resources (Xcode bug workaround?)";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p $BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH";
+		};
 		ECB8911B18C0C2B700B8F670 /* Copy product to ~/bin */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1257,20 +1286,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "product=$BUILT_PRODUCTS_DIR/$PRODUCT_NAME\necho \"product: '$product'\"\ncp \"$product\" ~/bin/\"$PRODUCT_NAME-$CONFIGURATION\"\n";
-		};
-		ECFE962318C3DF4E00D89FE6 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "mkdir -p $BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH";
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\necho \"opticon-askpass product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp \"$product\" \"$PROJECT_DIR/_build/$PRODUCT_NAME-$CONFIGURATION\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
