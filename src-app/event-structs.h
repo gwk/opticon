@@ -1,13 +1,12 @@
 // Copyright 2014 George King.
 // Permission to use this file is granted in license-opticon.txt (ISC license).
 
-// structs for packing multiple events into a single sqlite table.
+// structs for packing multiple events into a single row in the events table.
+// they are currently all 12 bytes wide, but could be different from each other.
 
-#import "qk-types.h"
-#import "qk-macros.h"
+#import "prefix.pch"
 
 
-// TODO: fit up/down and moving bits in.
 typedef struct {
   F32 time;
   I16 x;
@@ -26,7 +25,7 @@ typedef struct {
   F32 time;
   U16 keycode;
   U16 character;
-  U32 keyboard : 30;
+  U32 keyboard : 30; // maximum value is unspecified; the only instance I have seen fits in one byte.
   U32 autorepeat : 1; // boolean.
   U32 down : 1; // boolean.
 } KeyEvent;
