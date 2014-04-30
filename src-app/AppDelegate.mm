@@ -1,27 +1,24 @@
 // Copyright 2014 George King.
 // Permission to use this file is granted in license-opticon.txt (ISC license).
 
-
-#import <CoreGraphics/CGEvent.h>
-#import "qk-log.h"
-#import "qk-sql-util.h"
-#import "NSDate+QK.h"
-#import "NSString+QK.h"
-#import "QKMutableStructArray.h"
-#import "SqlDatabase.h"
 #import "event-structs.h"
 #import "AppDelegate.h"
 
-#define DB_ALWAYS_RESETS DEBUG && 1
+// for debugging convenience, the database can be cleared at the start of each run.
+#define DB_ALWAYS_RESETS (DEBUG && 1)
 
 AppDelegate* appDelegate;
 
 static NSString* const iconStringEnabled = @"⎊"; // U+238A CIRCLED TRIANGLE DOWN.
 static NSString* const iconStringDisabled = @"⎉"; // U+2389 CIRCLED HORIZONTAL BAR WITH NOTCH.
+static NSString* const iconStringError = @"○";// U+25CB WHITE CIRCLE
 
 static NSString* const tooltipEnabled = @"Disable Opticon to avoid collecting sensitive event data.";
 static NSString* const tooltipDisabled = @"Enable Opticon to collect event data.";
+static NSString* const tooltipErrorFormat = @"Opticon encountered an error: %@";
 
+
+// these enumeration values are stored in the event table's 'type' column.
 typedef enum {
   EventTypeUnknown = 0,
   EventTypeDisabledByUser,
@@ -54,16 +51,22 @@ typedef enum {
 
 @property (nonatomic) SqlDatabase* db;
 @property (nonatomic) SqlStatement* insertEventStatement;
+
+// fields for the pending event.
 @property (nonatomic) F64 pendingTime;
 @property (nonatomic) OpticonEventType pendingType;
 @property (nonatomic) Int pendingPid;
 @property (nonatomic) U64 pendingFlags;
-@property (nonatomic) QKMutableStructArray* pendingEventData;
+@property (nonatomic) QKMutableStructArray* pendingEventData; // buffer of packed events to be stored in a single row.
+
 @property (nonatomic) BOOL isLoggingEnabled;
+@property (nonatomic) NSString* errorDesc;
 @property (nonatomic) NSStatusItem* statusItem;
 @property (nonatomic) CFMachPortRef eventTap;
+@property (nonatomic) CFRunLoopSourceRef eventSource;
 @property (nonatomic) NSAttributedString* iconAttrStrEnabled;
 @property (nonatomic) NSAttributedString* iconAttrStrDisabled;
+@property (nonatomic) NSAttributedString* iconAttrStrError;
 
 @end
 
@@ -77,20 +80,17 @@ typedef enum {
 - (void)applicationDidFinishLaunching:(NSNotification*)note {
   assert_struct_types_are_valid();
   calculateStartTime();
+  _pendingEventData = [QKMutableStructArray withElSize:eventSize];
   [self setupDb];
   [self setupStatusItem];
   [self logInputSource:EventTypeInputSourceQueried];
-  [self setupMonitors];
   self.isLoggingEnabled = YES;
 }
 
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
-{
-  // TODO: explicitly remove NSStatusBar icon from the menu bar?
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender {
   return NSTerminateNow;
 }
-
 
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
@@ -120,10 +120,14 @@ static inline NSTimeInterval timestampForEvent(CGEventRef event) {
 
 static unichar unicharForKey(U16 keyCode, CGEventFlags flags, U32 keyboardType, BOOL down, BOOL autorepeat) {
   TISInputSourceRef inputSource = TISCopyCurrentKeyboardLayoutInputSource(); // TODO: store this to avoid lookup?
-  CFDataRef layoutData = (CFDataRef)TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData);
-  const UCKeyboardLayout* layout = (const UCKeyboardLayout*)CFDataGetBytePtr(layoutData);
+  auto layoutData = (CFDataRef)TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData);
+  auto layout = (const UCKeyboardLayout*)CFDataGetBytePtr(layoutData);
   UInt16 action = (autorepeat ? kUCKeyActionAutoKey : (down ? kUCKeyActionDown : kUCKeyActionUp));
-  const UniCharCount maxLen = 2; // max possible is 255; supposedly in practice output is usually limited to 4.
+  
+  // max possible output length is 255; supposedly in practice output is usually limited to 4.
+  // we get at most 2 characters, and then only store a char if we get back exactly one.
+  // this way we can be certain that we are not truncating the output.
+  const UniCharCount maxLen = 2;
   UInt32 keysDown = 0;
   UniCharCount len = 0;
   UniChar chars[maxLen];
@@ -131,6 +135,7 @@ static unichar unicharForKey(U16 keyCode, CGEventFlags flags, U32 keyboardType, 
   // modifiers are undocumented as far as I can tell.
   // credit to @jollyjinx for the hint: "cmd=1,s=2,o=8,ctrl=16"
   // https://twitter.com/jollyjinx/status/8024830691
+  // i wonder what is the '4' bit for?
   U32 modifiers = 0;
   if (flags & kCGEventFlagMaskAlphaShift) modifiers |= 2; // is this correct? what is alpha shift?
   if (flags & kCGEventFlagMaskShift)      modifiers |= 2;
@@ -194,10 +199,15 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEv
   Int pid = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
   U64 flags = CGEventGetFlags(event);
   auto delegate = (__bridge AppDelegate*)ctx;
+  // flushing events inserts the previous pending event as a row in the database,
+  // and sets the passed in data as the new pending event.
   F64 refTime = [delegate flushEventsForTime:time type:type pid:pid flags:flags];
   F32 relTime = time - refTime;
   void* ptr = NULL;
   switch (type) {
+    case EventTypeDisabledByTimeout:
+      delegate.errorDesc = @"Event tap timed out";
+      return NULL;
     case EventTypeMouse: {
       CGPoint loc = CGEventGetLocation(event);
       U16 pressure = CGEventGetDoubleValueField(event, kCGMouseEventPressure) * max_U16; // double value is between 0 and 1.
@@ -377,30 +387,13 @@ static auto noteEventTypes =
 }
 
 
-- (void)addNote:(NSString*)name {
+- (void)observeNote:(NSString*)name {
   auto wsnc = [[NSWorkspace sharedWorkspace] notificationCenter];
   [wsnc addObserver:self selector:@selector(workspaceNote:) name:name object:nil];
 }
 
 
-- (void)setupMonitors {
-  _pendingEventData = [QKMutableStructArray withElSize:eventSize];
-  [self addNote:NSWorkspaceWillLaunchApplicationNotification];
-  [self addNote:NSWorkspaceDidLaunchApplicationNotification];
-  [self addNote:NSWorkspaceDidTerminateApplicationNotification];
-  [self addNote:NSWorkspaceDidHideApplicationNotification];
-  [self addNote:NSWorkspaceDidUnhideApplicationNotification];
-  [self addNote:NSWorkspaceDidActivateApplicationNotification];
-  [self addNote:NSWorkspaceDidDeactivateApplicationNotification];
-  [self addNote:NSWorkspaceSessionDidBecomeActiveNotification];
-  [self addNote:NSWorkspaceSessionDidResignActiveNotification];
-  [self addNote:NSWorkspaceActiveSpaceDidChangeNotification];
-  [self addNote:NSWorkspaceWillPowerOffNotification];
-  [self addNote:NSWorkspaceDidWakeNotification];
-  [self addNote:NSWorkspaceWillSleepNotification];
-  [self addNote:NSWorkspaceScreensDidSleepNotification];
-  [self addNote:NSWorkspaceScreensDidWakeNotification];
-  
+- (void)setUpNotifications {
   auto dnc = CFNotificationCenterGetDistributedCenter();
   CFNotificationCenterAddObserver(dnc,
                                   (__bridge void*)self,
@@ -408,6 +401,48 @@ static auto noteEventTypes =
                                   kTISNotifySelectedKeyboardInputSourceChanged,
                                   NULL,
                                   CFNotificationSuspensionBehaviorDeliverImmediately);
+  
+  [self observeNote:NSWorkspaceWillLaunchApplicationNotification];
+  [self observeNote:NSWorkspaceDidLaunchApplicationNotification];
+  [self observeNote:NSWorkspaceDidTerminateApplicationNotification];
+  [self observeNote:NSWorkspaceDidHideApplicationNotification];
+  [self observeNote:NSWorkspaceDidUnhideApplicationNotification];
+  [self observeNote:NSWorkspaceDidActivateApplicationNotification];
+  [self observeNote:NSWorkspaceDidDeactivateApplicationNotification];
+  [self observeNote:NSWorkspaceSessionDidBecomeActiveNotification];
+  [self observeNote:NSWorkspaceSessionDidResignActiveNotification];
+  [self observeNote:NSWorkspaceActiveSpaceDidChangeNotification];
+  [self observeNote:NSWorkspaceWillPowerOffNotification];
+  [self observeNote:NSWorkspaceDidWakeNotification];
+  [self observeNote:NSWorkspaceWillSleepNotification];
+  [self observeNote:NSWorkspaceScreensDidSleepNotification];
+  [self observeNote:NSWorkspaceScreensDidWakeNotification];
+}
+
+
+- (void)tearDownNotifications {
+  auto dnc = CFNotificationCenterGetDistributedCenter();
+  CFNotificationCenterRemoveEveryObserver(dnc, (__bridge void*)self);
+  [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self name:nil object:nil];
+}
+
+
+- (BOOL)checkIsTrusted {
+  // key down/up events are only delivered if the current process is running as root,
+  // or the process has been approved as trusted for accessibility.
+  // TODO: since there does not seem to be a way to receive a notification if trust status is revoked,
+  // we should periodically check that the process remains trusted; once a minute seems reasonable.
+  auto options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
+  BOOL isTrusted = AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
+  if (!isTrusted) {
+    self.errorDesc = @"Opticon is not trusted; set trust in System Preferences -> Security and Privacy -> Privacy -> Accessibility";
+    return NO;
+  }
+  return YES;
+}
+
+- (BOOL)setUpEventTap {
+  if (![self checkIsTrusted]) return NO;
   
   CGEventMask eventMask = 0
   | CGEventMaskBit(kCGEventLeftMouseDown)
@@ -428,25 +463,34 @@ static auto noteEventTypes =
   | CGEventMaskBit(kCGEventOtherMouseDragged)
   ;
   
-  _eventTap =
-  CGEventTapCreate(kCGAnnotatedSessionEventTap, // tap events as they flow into applications (as late as possible).
-                   kCGTailAppendEventTap, // insert tap after any existing filters.
-                   kCGEventTapOptionListenOnly, // passive tap.
-                   eventMask,
-                   eventTapCallback,
-                   (__bridge void*)self);
+  _eventTap = CGEventTapCreate(kCGAnnotatedSessionEventTap, // tap events as they flow into applications (as late as possible).
+                               kCGTailAppendEventTap, // insert tap after any existing filters.
+                               kCGEventTapOptionListenOnly, // passive tap.
+                               eventMask,
+                               eventTapCallback,
+                               (__bridge void*)self);
+  if (!_eventTap) {
+    self.errorDesc = @"failed to create event tap";
+    return NO;
+  }
   
   //NSLog(@"tap: %p; enabled: %d", _eventTap, CGEventTapIsEnabled(_eventTap));
-  CFRunLoopSourceRef source = CFMachPortCreateRunLoopSource(NULL, _eventTap, 0);
-  CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], source, kCFRunLoopCommonModes);
-  CFRelease(source);
-  
-  // key down/up events are only delivered if the current process is running as root,
-  // or the process has been approved as trusted for accessibility.
-  // this is set in System Preferences -> Security and Privacy -> Privacy -> Accessibility.
-  auto options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
-  BOOL isTrusted = AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
-  NSLog(@"accessibility trusted: %@", BIT_YN(isTrusted));
+  _eventSource = CFMachPortCreateRunLoopSource(NULL, _eventTap, 0);
+  CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], _eventSource, kCFRunLoopCommonModes);
+  return YES;
+}
+
+
+- (void)tearDownEventTap {
+  if (_eventSource) {
+    CFRunLoopRemoveSource([[NSRunLoop currentRunLoop] getCFRunLoop], _eventSource, kCFRunLoopCommonModes);
+    CFRelease(_eventSource);
+    _eventSource = NULL;
+  }
+  if (_eventTap) {
+    CFRelease(_eventTap);
+    _eventTap = NULL;
+  }
 }
 
 
@@ -456,26 +500,57 @@ static auto noteEventTypes =
   NSLog(@"event logging enabled: %@", BIT_YN(e));
   _isLoggingEnabled = e;
   _statusItem.attributedTitle = e ? _iconAttrStrEnabled : _iconAttrStrDisabled;
-  _statusItem.toolTip = e ? tooltipEnabled : tooltipDisabled;
-  CGEventTapEnable(_eventTap, e);
+  //CGEventTapEnable(_eventTap, e); // rather than enable/disable, we do complete setup/teardown to reduce possible states.
+  if (e) {
+    [self setUpNotifications];
+    [self setUpEventTap];
+  } else {
+    [self tearDownNotifications];
+    [self tearDownEventTap];
+  }
+  [self updateStatusItem];
+}
+
+
+- (void)setErrorDesc:(NSString *)errorDesc {
+  _errorDesc = errorDesc;
+  NSLog(@"error: %@.", errorDesc);
+  [self updateStatusItem];
 }
 
 
 - (void)toggleIsLoggingEnabled {
+  _errorDesc = nil; // updateStatusItem will follow, so call to setter would be redundant.
   self.isLoggingEnabled = !_isLoggingEnabled;
 }
 
 
 - (void)setupStatusItem {
   auto attrs = @{NSFontAttributeName: [NSFont boldSystemFontOfSize:24]};
-  _iconAttrStrEnabled = [[NSAttributedString alloc] initWithString:iconStringEnabled attributes:attrs];
-  _iconAttrStrDisabled = [[NSAttributedString alloc] initWithString:iconStringDisabled attributes:attrs];
-
+  auto errorAttrs = @{NSFontAttributeName : [NSFont boldSystemFontOfSize:24],
+                      NSForegroundColorAttributeName : [CUIColor r:.5]};
+  _iconAttrStrEnabled   = [[NSAttributedString alloc] initWithString:iconStringEnabled attributes:attrs];
+  _iconAttrStrDisabled  = [[NSAttributedString alloc] initWithString:iconStringDisabled attributes:attrs];
+  _iconAttrStrError     = [[NSAttributedString alloc] initWithString:iconStringError attributes:errorAttrs];
   NSStatusBar* statusBar = [NSStatusBar systemStatusBar];
   _statusItem = [statusBar statusItemWithLength:NSSquareStatusItemLength];
   _statusItem.highlightMode = YES;
   _statusItem.target = self;
   _statusItem.action = @selector(toggleIsLoggingEnabled);
+}
+
+
+- (void)updateStatusItem {
+  if (_errorDesc) {
+    _statusItem.attributedTitle = _iconAttrStrError;
+    _statusItem.toolTip = [NSString stringWithFormat:tooltipErrorFormat, _errorDesc];
+  } else if (_isLoggingEnabled) {
+    _statusItem.attributedTitle = _iconAttrStrEnabled;
+    _statusItem.toolTip = tooltipEnabled;
+  } else {
+    _statusItem.attributedTitle = _iconAttrStrDisabled;
+    _statusItem.toolTip = tooltipDisabled;
+  }
 }
 
 
