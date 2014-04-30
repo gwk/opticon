@@ -7,15 +7,21 @@
 // for debugging convenience, the database can be cleared at the start of each run.
 #define DB_ALWAYS_RESETS (DEBUG && 1)
 
+#if DEBUG
+#define DBG_SUFFIX @" (debug)"
+#else
+#define DBG_SUFFIX @""
+#endif
+
 AppDelegate* appDelegate;
 
 static NSString* const iconStringEnabled = @"⎊"; // U+238A CIRCLED TRIANGLE DOWN.
 static NSString* const iconStringDisabled = @"⎉"; // U+2389 CIRCLED HORIZONTAL BAR WITH NOTCH.
 static NSString* const iconStringError = @"○";// U+25CB WHITE CIRCLE
 
-static NSString* const tooltipEnabled = @"Disable Opticon to avoid collecting sensitive event data.";
-static NSString* const tooltipDisabled = @"Enable Opticon to collect event data.";
-static NSString* const tooltipErrorFormat = @"Opticon encountered an error: %@";
+static NSString* const tooltipEnabled = @"Disable Opticon to avoid collecting sensitive event data." DBG_SUFFIX;
+static NSString* const tooltipDisabled = @"Enable Opticon to collect event data." DBG_SUFFIX;
+static NSString* const tooltipErrorFormat = @"Opticon encountered an error: %@" DBG_SUFFIX;
 
 
 // these enumeration values are stored in the event table's 'type' column.
