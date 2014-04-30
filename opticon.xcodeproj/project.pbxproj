@@ -1154,7 +1154,7 @@
 				EC2CD76618BE4FAC00C8E45D /* Frameworks */,
 				EC56541419096CCD008C6C11 /* create Contents/Resources (Xcode bug workaround?) */,
 				EC2CD76718BE4FAC00C8E45D /* Resources */,
-				EC56541019096755008C6C11 /* Copy product to ~/bin */,
+				EC56541019096755008C6C11 /* Copy product to _build/ */,
 			);
 			buildRules = (
 			);
@@ -1172,7 +1172,7 @@
 				ECB8910B18BFE7B100B8F670 /* Sources */,
 				ECB8910C18BFE7B100B8F670 /* Frameworks */,
 				ECB8910D18BFE7B100B8F670 /* CopyFiles */,
-				ECB8911B18C0C2B700B8F670 /* Copy product to ~/bin */,
+				ECB8911B18C0C2B700B8F670 /* Copy product to _build/ */,
 			);
 			buildRules = (
 			);
@@ -1246,19 +1246,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		EC56541019096755008C6C11 /* Copy product to ~/bin */ = {
+		EC56541019096755008C6C11 /* Copy product to _build/ */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Copy product to ~/bin";
+			name = "Copy product to _build/";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\necho \"opticon product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\"\n";
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst=\"$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\"\necho \"opticon product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$dst\"\ntouch \"$dst\"\n";
 		};
 		EC56541419096CCD008C6C11 /* create Contents/Resources (Xcode bug workaround?) */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1274,14 +1274,14 @@
 			shellPath = /bin/sh;
 			shellScript = "mkdir -p $BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH";
 		};
-		ECB8911B18C0C2B700B8F670 /* Copy product to ~/bin */ = {
+		ECB8911B18C0C2B700B8F670 /* Copy product to _build/ */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Copy product to ~/bin";
+			name = "Copy product to _build/";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
