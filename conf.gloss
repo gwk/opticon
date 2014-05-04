@@ -1,5 +1,5 @@
 # Copyright 2010 George King.
-# Permission to use this file is granted in libqk/license.txt.
+# Permission to use this file is granted in license-opticon.txt.
 
 # project configuration info
 
@@ -7,7 +7,7 @@
   'project'   : 'libqk',
   'copyright' : 'George King',
   'licenses'  : [
-    'Permission to use this file is granted in opticon/license.txt.',
+    'Permission to use this file is granted in license-opticon.txt (ISC License).',
   ],
   'objc-acronym' : 'QK',
 }
