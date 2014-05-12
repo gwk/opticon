@@ -4,8 +4,6 @@
 #import "event-structs.h"
 #import "AppDelegate.h"
 
-// for debugging convenience, the database can be cleared at the start of each run.
-#define DB_ALWAYS_RESETS (DEBUG && 1)
 
 #if DEBUG
 #define DBG_SUFFIX @" (debug)"
@@ -375,9 +373,6 @@ static auto noteEventTypes =
   
   _db = [SqlDatabase withPath:dbPath writeable:YES create:YES];
   qk_check(_db, @"no database: %@", dbPath);
-#if DB_ALWAYS_RESETS
-  [_db execute:@"DROP TABLE IF EXISTS events"];
-#endif
   
   [_db execute:
    @"CREATE TABLE IF NOT EXISTS events ( "
