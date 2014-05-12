@@ -84,10 +84,7 @@ typedef enum {
 - (void)applicationDidFinishLaunching:(NSNotification*)note {
   assert_struct_types_are_valid();
   calculateStartTime();
-  _pendingEventData = [QKMutableStructArray withElSize:eventSize];
-  [self setupDb];
   [self setupStatusItem];
-  [self logInputSource:EventTypeInputSourceQueried];
   self.isLoggingEnabled = YES;
 }
 
@@ -98,8 +95,7 @@ typedef enum {
 
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
-  [self flushEvents];
-  [_db close];
+  self.isLoggingEnabled = NO;
 }
 
 
@@ -364,7 +360,7 @@ static auto noteEventTypes =
 }
 
 
-- (void)setupDb {
+- (void)setUpDb {
 #if DEBUG
   auto dbPath = [@"~/Documents/opticon-debug.sqlite" stringByExpandingTildeInPath];
 #else
@@ -385,6 +381,14 @@ static auto noteEventTypes =
    @")"];
   
   _insertEventStatement = [_db prepareInsert:5 table:@"events"];
+}
+
+
+- (void)tearDownDb {
+  [_db close];
+  _db = nil;
+  [_insertEventStatement close];
+  _insertEventStatement = nil;
 }
 
 
@@ -496,18 +500,24 @@ static auto noteEventTypes =
 
 
 - (void)setIsLoggingEnabled:(BOOL)isLoggingEnabled {
-  BOOL e = !!isLoggingEnabled;
-  if (_isLoggingEnabled == e) return;
-  NSLog(@"event logging enabled: %@", BIT_YN(e));
-  _isLoggingEnabled = e;
-  _statusItem.attributedTitle = e ? _iconAttrStrEnabled : _iconAttrStrDisabled;
-  //CGEventTapEnable(_eventTap, e); // rather than enable/disable, we do complete setup/teardown to reduce possible states.
-  if (e) {
+  BOOL enable = !!isLoggingEnabled;
+  if (_isLoggingEnabled == enable) return;
+  NSLog(@"event logging enabled: %@", BIT_YN(enable));
+  _isLoggingEnabled = enable;
+  _statusItem.attributedTitle = enable ? _iconAttrStrEnabled : _iconAttrStrDisabled;
+  // rather than using CGEventTapEnable(_eventTap, enable), we do complete setup/teardown to reduce possible states.
+  // this makes error handling much simpler.
+  if (enable) {
+    [self setUpDb];
     [self setUpNotifications];
     [self setUpEventTap];
+    _pendingEventData = [QKMutableStructArray withElSize:eventSize];
+    [self logInputSource:EventTypeInputSourceQueried];
   } else {
-    [self tearDownNotifications];
+    [self flushEvents];
     [self tearDownEventTap];
+    [self tearDownNotifications];
+    [self tearDownDb];
   }
   [self updateStatusItem];
 }
