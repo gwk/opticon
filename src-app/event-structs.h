@@ -4,7 +4,8 @@
 // structs for packing multiple events into a single row in the events table.
 // they are currently all 12 bytes wide, but could be different from each other.
 
-#import "prefix.pch"
+#import "qk-types.h"
+#import "qk-macros.h"
 
 
 typedef struct {
