@@ -95,7 +95,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		EC2CD76918BE4FAC00C8E45D /* opticon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = opticon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC2CD76918BE4FAC00C8E45D /* opticon-Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "opticon-Debug.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC2CD76C18BE4FAC00C8E45D /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		EC2CD76F18BE4FAC00C8E45D /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		EC2CD77018BE4FAC00C8E45D /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -432,7 +432,7 @@
 		ECB890F518BE57E600B8F670 /* opticon-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "opticon-Info.plist"; sourceTree = "<group>"; };
 		ECB890FC18BFD6D000B8F670 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		ECB8910918BFD9E100B8F670 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		ECB8910F18BFE7B100B8F670 /* opticon-askpass */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "opticon-askpass"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ECB8910F18BFE7B100B8F670 /* opticon-askpass-Debug */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "opticon-askpass-Debug"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECB8911218BFE7B200B8F670 /* opticon-askpass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "opticon-askpass.c"; sourceTree = "<group>"; };
 		ECB8911918BFEFB200B8F670 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		ECFE977A18C4F32B00D89FE6 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -478,8 +478,8 @@
 		EC2CD76A18BE4FAC00C8E45D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				EC2CD76918BE4FAC00C8E45D /* opticon.app */,
-				ECB8910F18BFE7B100B8F670 /* opticon-askpass */,
+				EC2CD76918BE4FAC00C8E45D /* opticon-Debug.app */,
+				ECB8910F18BFE7B100B8F670 /* opticon-askpass-Debug */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1146,9 +1146,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		EC2CD76818BE4FAC00C8E45D /* opticon */ = {
+		EC2CD76818BE4FAC00C8E45D /* Opticon */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EC2CD79A18BE4FAC00C8E45D /* Build configuration list for PBXNativeTarget "opticon" */;
+			buildConfigurationList = EC2CD79A18BE4FAC00C8E45D /* Build configuration list for PBXNativeTarget "Opticon" */;
 			buildPhases = (
 				EC2CD76518BE4FAC00C8E45D /* Sources */,
 				EC2CD76618BE4FAC00C8E45D /* Frameworks */,
@@ -1160,9 +1160,9 @@
 			);
 			dependencies = (
 			);
-			name = opticon;
+			name = Opticon;
 			productName = opticon;
-			productReference = EC2CD76918BE4FAC00C8E45D /* opticon.app */;
+			productReference = EC2CD76918BE4FAC00C8E45D /* opticon-Debug.app */;
 			productType = "com.apple.product-type.application";
 		};
 		ECB8910E18BFE7B100B8F670 /* opticon-askpass */ = {
@@ -1180,7 +1180,7 @@
 			);
 			name = "opticon-askpass";
 			productName = "opticon-askpass";
-			productReference = ECB8910F18BFE7B100B8F670 /* opticon-askpass */;
+			productReference = ECB8910F18BFE7B100B8F670 /* opticon-askpass-Debug */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -1211,7 +1211,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				EC2CD76818BE4FAC00C8E45D /* opticon */,
+				EC2CD76818BE4FAC00C8E45D /* Opticon */,
 				ECB8910E18BFE7B100B8F670 /* opticon-askpass */,
 			);
 		};
@@ -1258,7 +1258,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst=\"$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\"\necho \"opticon product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$dst\"\ntouch \"$dst\"\n";
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst=$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\necho \"product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$dst\"\ntouch \"$dst\"\n";
 		};
 		EC56541419096CCD008C6C11 /* create Contents/Resources (Xcode bug workaround?) */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1286,7 +1286,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\necho \"opticon-askpass product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp \"$product\" \"$PROJECT_DIR/_build/$PRODUCT_NAME-$CONFIGURATION\"\n";
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst=$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\necho \"product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$dst\"\ntouch \"$dst\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1372,6 +1372,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIG_SUFFIX = "-Debug";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_ENABLE_PASCAL_STRINGS = NO;
@@ -1418,6 +1419,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIG_SUFFIX = "";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1459,7 +1461,7 @@
 					"$(PROJECT_DIR)/submodules/libqk/submodules/libqk-built-mac/lib",
 				);
 				OTHER_CFLAGS = "-mms-bitfields";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(TARGET_NAME)$(CONFIG_SUFFIX)";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1477,7 +1479,7 @@
 					"$(PROJECT_DIR)/submodules/libqk/submodules/libqk-built-mac/lib",
 				);
 				OTHER_CFLAGS = "-mms-bitfields";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(TARGET_NAME)$(CONFIG_SUFFIX)";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -1486,7 +1488,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(TARGET_NAME)$(CONFIG_SUFFIX)";
 			};
 			name = Debug;
 		};
@@ -1494,7 +1496,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "$(TARGET_NAME)$(CONFIG_SUFFIX)";
 			};
 			name = Release;
 		};
@@ -1510,7 +1512,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		EC2CD79A18BE4FAC00C8E45D /* Build configuration list for PBXNativeTarget "opticon" */ = {
+		EC2CD79A18BE4FAC00C8E45D /* Build configuration list for PBXNativeTarget "Opticon" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EC2CD79B18BE4FAC00C8E45D /* Debug */,
