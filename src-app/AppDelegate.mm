@@ -206,7 +206,9 @@ CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType cgEventType, CGEv
   void* ptr = NULL;
   switch (type) {
     case EventTypeDisabledByTimeout:
-      delegate.errorDesc = @"Event tap timed out";
+      // we do want to record this event, and we can safely, so flush before reporting error.
+      [delegate flushEvents];
+      delegate.errorDesc = @"Event tap timed out.";
       return NULL;
     case EventTypeMouse: {
       CGPoint loc = CGEventGetLocation(event);
@@ -281,14 +283,18 @@ void inputSourceChangedCallback(CFNotificationCenterRef center,
             pid:(Int)pid
           flags:(U64)flags
            data:(NSData*)data {
-  
-  auto s = _insertEventStatement;
-  [s bindIndex:1 F64:time];
-  [s bindIndex:2 Int:type];
-  [s bindIndex:3 Int:pid];
-  [s bindIndex:4 U64:flags];
-  [s bindIndex:5 data:data];
-  [s execute];
+  @try {
+    auto s = _insertEventStatement;
+    [s bindIndex:1 F64:time];
+    [s bindIndex:2 Int:type];
+    [s bindIndex:3 Int:pid];
+    [s bindIndex:4 U64:flags];
+    [s bindIndex:5 data:data];
+    [s execute];
+  }
+  @catch (NSException* exc) {
+    self.errorDesc = [NSString stringWithFormat:@"exception during sqlite insert."];
+  }
 }
 
 
@@ -385,10 +391,10 @@ static auto noteEventTypes =
 
 
 - (void)tearDownDb {
-  [_db close];
-  _db = nil;
   [_insertEventStatement close];
   _insertEventStatement = nil;
+  [_db close];
+  _db = nil;
 }
 
 
@@ -440,7 +446,7 @@ static auto noteEventTypes =
   auto options = @{(__bridge id)kAXTrustedCheckOptionPrompt: @YES};
   BOOL isTrusted = AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
   if (!isTrusted) {
-    self.errorDesc = @"Opticon is not trusted; set trust in System Preferences -> Security and Privacy -> Privacy -> Accessibility";
+    self.errorDesc = @"Opticon is not trusted; set trust in System Preferences -> Security and Privacy -> Privacy -> Accessibility.";
     return NO;
   }
   return YES;
@@ -475,7 +481,7 @@ static auto noteEventTypes =
                                eventTapCallback,
                                (__bridge void*)self);
   if (!_eventTap) {
-    self.errorDesc = @"failed to create event tap";
+    self.errorDesc = @"failed to create event tap.";
     return NO;
   }
   
@@ -501,37 +507,41 @@ static auto noteEventTypes =
 
 - (void)setIsLoggingEnabled:(BOOL)isLoggingEnabled {
   BOOL enable = !!isLoggingEnabled;
-  if (_isLoggingEnabled == enable) return;
-  NSLog(@"event logging enabled: %@", BIT_YN(enable));
-  _isLoggingEnabled = enable;
-  _statusItem.attributedTitle = enable ? _iconAttrStrEnabled : _iconAttrStrDisabled;
-  // rather than using CGEventTapEnable(_eventTap, enable), we do complete setup/teardown to reduce possible states.
-  // this makes error handling much simpler.
-  if (enable) {
-    [self setUpDb];
-    [self setUpNotifications];
-    [self setUpEventTap];
-    _pendingEventData = [QKMutableStructArray withElSize:eventSize];
-    [self logInputSource:EventTypeInputSourceQueried];
-  } else {
-    [self flushEvents];
-    [self tearDownEventTap];
-    [self tearDownNotifications];
-    [self tearDownDb];
+  if (_isLoggingEnabled != enable) {
+    NSLog(@"event logging enabled: %@", BIT_YN(enable));
+    _isLoggingEnabled = enable;
+    // rather than using CGEventTapEnable(_eventTap, enable), we do complete setup/teardown to reduce possible states.
+    // this makes error handling much simpler.
+    if (enable) {
+      [self setUpDb];
+      [self setUpNotifications];
+      [self setUpEventTap];
+      _pendingEventData = [QKMutableStructArray withElSize:eventSize];
+      [self logInputSource:EventTypeInputSourceQueried];
+    } else {
+      // not safe to flush events if an error occurred; it might have been an sql error in flushEvents or some other bad state.
+      if (!_errorDesc) {
+        [self flushEvents];
+      }
+      [self tearDownEventTap];
+      [self tearDownNotifications];
+      [self tearDownDb];
+    }
   }
+  // always update the UI because this might have been called by setErrorDesc.
   [self updateStatusItem];
 }
 
 
 - (void)setErrorDesc:(NSString *)errorDesc {
   _errorDesc = errorDesc;
-  NSLog(@"error: %@.", errorDesc);
-  [self updateStatusItem];
+  NSLog(@"error: %@", errorDesc);
+  self.isLoggingEnabled = NO;
 }
 
 
 - (void)toggleIsLoggingEnabled {
-  _errorDesc = nil; // updateStatusItem will follow, so call to setter would be redundant.
+  _errorDesc = nil; // updateStatusItem will follow, so call to setter would be redundant; see above.
   self.isLoggingEnabled = !_isLoggingEnabled;
 }
 
