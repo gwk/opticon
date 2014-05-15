@@ -989,7 +989,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst=$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\necho \"product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$dst\"\ntouch \"$dst\"\n";
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst_dir=$PROJECT_DIR/_build\ndst=$dst_dir/$FULL_PRODUCT_NAME\necho \"product: '$product'\"\necho \"dst: '$dst'\"\nset -ex\nmkdir -p \"$dst_dir\"\nrm -rf \"$dst\"\ncp -r \"$product\" \"$dst_dir\"\ntouch \"$dst\"\n";
 		};
 		EC56541419096CCD008C6C11 /* create Contents/Resources (Xcode bug workaround?) */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1017,7 +1017,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst=$PROJECT_DIR/_build/$FULL_PRODUCT_NAME\necho \"product: '$product'\"\nset -ex\nmkdir -p \"$PROJECT_DIR/_build\"\ncp -r \"$product\" \"$dst\"\ntouch \"$dst\"\n";
+			shellScript = "product=$BUILT_PRODUCTS_DIR/$FULL_PRODUCT_NAME\ndst_dir=$PROJECT_DIR/_build\ndst=$dst_dir/$FULL_PRODUCT_NAME\necho \"product: '$product'\"\necho \"dst: '$dst'\"\nset -ex\nmkdir -p \"$dst_dir\"\nrm -rf \"$dst\"\ncp -r \"$product\" \"$dst_dir\"\ntouch \"$dst\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
