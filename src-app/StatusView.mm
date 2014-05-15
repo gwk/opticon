@@ -63,6 +63,7 @@
   //CGContextSetFillColorWithColor(ctx, [CRColor r].CGColor);
   //CGContextFillRect(ctx, tb);
   CTLineDraw(line, ctx);
+  CFRelease(line);
   CGContextRestoreGState(ctx);
 }
 
