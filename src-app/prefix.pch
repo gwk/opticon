@@ -10,4 +10,6 @@
 #import <QuartzCore/QuartzCore.h>
 #import <sqlite3.h>
 
+#import "qk-log.h"
+
 #endif

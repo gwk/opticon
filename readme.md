@@ -69,5 +69,7 @@ There are lots of things I would like to add, starting with:
 * Scripts to analyze usage of key commands by application.
 * Scripts that cross-reference opticon events with Chrome browsing history and git logs.
 * Application blacklist for apps that should not be recorded, e.g. 1Password, TrueCrypt.
+* Use kAXMainWindowAttribute and CGWindowRef APIs (or something) to track frontmost window.
+* Use image icons for the status item; rendering unicode glyphs results in unpredictable layout.
 
 Pull requests are welcome!

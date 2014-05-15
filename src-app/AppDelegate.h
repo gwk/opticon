@@ -4,6 +4,10 @@
 #import "prefix.pch"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
+
+- (void)toggleIsLoggingEnabled;
+- (void)updateMenuDisplayed;
+
 @end
 
 extern AppDelegate* appDelegate;

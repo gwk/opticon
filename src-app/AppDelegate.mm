@@ -5,11 +5,12 @@
 #import "SqlDatabase.h"
 #import "qk-log.h"
 
-#import "CUIColor.h"
+#import "CRColor.h"
 #import "NSDate+QK.h"
 #import "NSString+QK.h"
 
 #import "event-structs.h"
+#import "StatusView.h"
 #import "AppDelegate.h"
 
 
@@ -25,9 +26,9 @@ static NSString* const iconStringEnabled = @"⎊"; // U+238A CIRCLED TRIANGLE DO
 static NSString* const iconStringDisabled = @"⎉"; // U+2389 CIRCLED HORIZONTAL BAR WITH NOTCH.
 static NSString* const iconStringError = @"○";// U+25CB WHITE CIRCLE
 
-static NSString* const tooltipEnabled = @"Disable Opticon to avoid collecting sensitive event data." DBG_SUFFIX;
-static NSString* const tooltipDisabled = @"Enable Opticon to collect event data." DBG_SUFFIX;
-static NSString* const tooltipErrorFormat = @"Opticon encountered an error: %@" DBG_SUFFIX;
+static NSString* const tooltipEnabled = @"Opticon is enabled" DBG_SUFFIX;
+static NSString* const tooltipDisabled = @"Opticon is disabled" DBG_SUFFIX;
+static NSString* const tooltipErrorFormat = @"Opticon error: %@" DBG_SUFFIX;
 
 
 // these enumeration values are stored in the event table's 'type' column.
@@ -59,7 +60,7 @@ typedef enum {
 } OpticonEventType;
 
 
-@interface AppDelegate ()
+@interface AppDelegate () <NSMenuDelegate>
 
 @property (nonatomic) SqlDatabase* db;
 @property (nonatomic) SqlStatement* insertEventStatement;
@@ -79,6 +80,9 @@ typedef enum {
 @property (nonatomic) NSAttributedString* iconAttrStrEnabled;
 @property (nonatomic) NSAttributedString* iconAttrStrDisabled;
 @property (nonatomic) NSAttributedString* iconAttrStrError;
+@property (nonatomic) StatusView* statusView;
+@property (nonatomic) NSMenu* menu;
+@property (nonatomic) NSMenuItem* stateMenuItem;
 
 @end
 
@@ -90,8 +94,10 @@ typedef enum {
 
 
 - (void)applicationDidFinishLaunching:(NSNotification*)note {
+  appDelegate = self;
   assert_struct_types_are_valid();
   calculateStartTime();
+  [self setupMenu];
   [self setupStatusItem];
   self.isLoggingEnabled = YES;
 }
@@ -104,6 +110,19 @@ typedef enum {
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
   self.isLoggingEnabled = NO;
+}
+
+
+#pragma mark - NSMenuDelegate
+
+
+- (void)menuWillOpen:(NSMenu *)menu {
+  _statusView.isLit = YES;
+}
+
+
+- (void)menuDidClose:(NSMenu*)menu {
+  _statusView.isLit = NO;
 }
 
 
@@ -554,32 +573,66 @@ static auto noteEventTypes =
 }
 
 
+- (void)setupMenu {
+  _menu = [NSMenu new];
+  _menu.delegate = self;
+  _menu.autoenablesItems = NO;
+  _stateMenuItem = [_menu addItemWithTitle:@"" action:NULL keyEquivalent:@""];
+  _stateMenuItem.enabled = NO;
+  [_menu addItemWithTitle:@"Quit" action:@selector(quit) keyEquivalent:@""];
+}
+
+
 - (void)setupStatusItem {
-  auto attrs = @{NSFontAttributeName: [NSFont boldSystemFontOfSize:24]};
-  auto errorAttrs = @{NSFontAttributeName : [NSFont boldSystemFontOfSize:24],
-                      NSForegroundColorAttributeName : [CUIColor r:.5]};
+  auto attrs = strAttrs([CRFont boldSystemFontOfSize:28],
+                        [CRColor k]);
+  
+  auto errorAttrs = strAttrs([CRFont boldSystemFontOfSize:28],
+                             [CRColor r:.5]);
+  
   _iconAttrStrEnabled   = [[NSAttributedString alloc] initWithString:iconStringEnabled attributes:attrs];
   _iconAttrStrDisabled  = [[NSAttributedString alloc] initWithString:iconStringDisabled attributes:attrs];
   _iconAttrStrError     = [[NSAttributedString alloc] initWithString:iconStringError attributes:errorAttrs];
+  
+  _statusView = [StatusView new];
+
   NSStatusBar* statusBar = [NSStatusBar systemStatusBar];
   _statusItem = [statusBar statusItemWithLength:NSSquareStatusItemLength];
+   // highlightMode does not appear to work with our custom view on OSX 10.9.2, hence the custom isLit property.
   _statusItem.highlightMode = YES;
   _statusItem.target = self;
-  _statusItem.action = @selector(toggleIsLoggingEnabled);
+  _statusItem.view = _statusView;
+  
+  // reduce the tooltip delay. this seems desirable but was never tested; see note below about broken tooltips.
+  [[NSUserDefaults standardUserDefaults] setObject:@1 forKey:@"NSInitialToolTipDelay"];
 }
 
 
 - (void)updateStatusItem {
+  NSString* stateStr = nil;
   if (_errorDesc) {
-    _statusItem.attributedTitle = _iconAttrStrError;
-    _statusItem.toolTip = [NSString stringWithFormat:tooltipErrorFormat, _errorDesc];
+    _statusView.richText = _iconAttrStrError;
+    stateStr = [NSString stringWithFormat:tooltipErrorFormat, _errorDesc];
   } else if (_isLoggingEnabled) {
-    _statusItem.attributedTitle = _iconAttrStrEnabled;
-    _statusItem.toolTip = tooltipEnabled;
+    _statusView.richText = _iconAttrStrEnabled;
+    stateStr = tooltipEnabled;
   } else {
-    _statusItem.attributedTitle = _iconAttrStrDisabled;
-    _statusItem.toolTip = tooltipDisabled;
+    _statusView.richText = _iconAttrStrDisabled;
+    stateStr = tooltipDisabled;
   }
+  _stateMenuItem.title = stateStr;
+  // tooltips also appear broken on OSX 10.9.2. I saw them appear correctly for exactly one run of the app.
+  _stateMenuItem.toolTip = stateStr;
+}
+
+
+- (void)updateMenuDisplayed {
+  [_statusItem popUpStatusItemMenu:_menu];
+}
+
+
+- (void)quit {
+  [NSApp terminate:nil];
 }
 
 
