@@ -479,6 +479,7 @@ static auto noteEventTypes =
   return YES;
 }
 
+
 - (BOOL)setUpEventTap {
   if (![self checkIsTrusted]) return NO;
   
