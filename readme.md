@@ -59,17 +59,17 @@ If keys highlight when the keyboard viewer is up, then event taps are receiving 
 
 ###TODO
 
-
 There are lots of things I would like to add, starting with:
-* Fix tooltips, which seem to only display when running from Xcode.
-* Simple menu accessed by right-click to display quit item, and tooltip text if the above bug cannot be fixed.
+* Log enable and disable events. What are the privacy implications of this?
 * A website from which to download builds.
 * Scripts to simplify the aggregate key, mouse, and scroll events into statistically useful events to reduce privacy risk and facilitate data sharing.
 * Scripts to analyze periodic usage, e.g. hours of day and days of week.
-* Scripts to analyze usage of key commands by application.
-* Scripts that cross-reference opticon events with Chrome browsing history and git logs.
+* Scripts to analyze usage of key commands by application. Put some numbers behind those editor flame wars :)
+* Scripts that cross-reference Opticon events with Chrome browsing history and git logs.
 * Application blacklist for apps that should not be recorded, e.g. 1Password, TrueCrypt.
 * Use kAXMainWindowAttribute and CGWindowRef APIs (or something) to track frontmost window.
+* Fix opticon-askpass final newline omission (try sudo echo hi).
 * Use image icons for the status item; rendering unicode glyphs results in unpredictable layout.
+* Fix tooltips, which seem to only display when running from Xcode.
 
 Pull requests are welcome!
