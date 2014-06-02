@@ -2,14 +2,14 @@ Opticon
 -------
 
 Opticon is an OSX accessory application that records user input and system event data (similar to a keylogger).
-I wrote it for personal computer habit analytics, but I hope that people will find other (benevolent) uses for it.
+I wrote it for personal analytics, but I hope that people will find other (benevolent) uses for it.
 Unlike malicious keyloggers, Opticon takes some steps to avoid collecting passwords,
 in the hopes that the resulting data will be easier to share (see below).
 Nevertheless, Opticon collects key, mouse, and application data while it is enabled,
 so it is up to the user to protect the resulting database with the appropriate precautions.
 OSX full disk encryption is highly recommended.
 
-Opticon also comes with utility to prevent your system password from being recorded due to sudo prompts, called opticon-askpass. See The Usage section below.
+Opticon also comes with a utility called opticon-askpass to prevent your system password from being recorded when using sudo. See The Usage section below.
 
 ###License
 
@@ -38,10 +38,10 @@ Simply launch Opticon.app, and it will begin writing event data to ~/Documents/o
 Use opticon-dump.py (requires Python 3.4) to generate a complete textual dump of the database.
 More interesting analytics scripts need to be written; patches are welcome.
 
-If you are a terminal user, you should make use of opticon-askpass to prevent your system password from being recorded at sudo prompts.
-To install it, place the opticon-askpass binary somewhere stable, then add the following to your .bashrc / .bash_profile:
+If you are a terminal user, you should use opticon-askpass to prevent your system password from being recorded at sudo prompts.
+To install it, place the opticon-askpass binary somewhere stable, e.g. /usr/local/bin, then add the following to your .bashrc / .bash_profile:
 
-    export SUDO_ASKPASS=~/bin/opticon-askpass # or whatever install path you choose.
+    export SUDO_ASKPASS=/usr/local/bin/opticon-askpass # or whatever install path you choose.
     alias sudo='sudo -A' # make sudo use SUDO_ASKPASS.
 
 Now, when you invoke sudo, instead of the normal prompt,
@@ -60,15 +60,15 @@ If keys highlight when the keyboard viewer is up, then event taps are receiving 
 ###TODO
 
 There are lots of things I would like to add, starting with:
-* Log enable and disable events. What are the privacy implications of this?
-* A website from which to download builds.
+* Fix opticon-askpass final newline omission (try sudo echo hi).
+* Log enable and disable events? What are the privacy implications of this?
+* A website from which to download builds. Use github releases?
 * Scripts to simplify the aggregate key, mouse, and scroll events into statistically useful events to reduce privacy risk and facilitate data sharing.
 * Scripts to analyze periodic usage, e.g. hours of day and days of week.
-* Scripts to analyze usage of key commands by application. Put some numbers behind those editor flame wars :)
+* Scripts to analyze usage of key commands by application. Let's inject some numbers into those editor flame wars :)
 * Scripts that cross-reference Opticon events with Chrome browsing history and git logs.
 * Application blacklist for apps that should not be recorded, e.g. 1Password, TrueCrypt.
 * Use kAXMainWindowAttribute and CGWindowRef APIs (or something) to track frontmost window.
-* Fix opticon-askpass final newline omission (try sudo echo hi).
 * Use image icons for the status item; rendering unicode glyphs results in unpredictable layout.
 * Fix tooltips, which seem to only display when running from Xcode.
 
