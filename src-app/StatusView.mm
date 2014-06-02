@@ -68,8 +68,8 @@
 }
 
 
-DEF_SET_NEEDS_DISPLAY(NSAttributedString*, richText, RichText);
-DEF_SET_NEEDS_DISPLAY(BOOL, isLit, IsLit);
+DEF_SET_AND_DISPLAY(NSAttributedString*, richText, RichText);
+DEF_SET_AND_DISPLAY(BOOL, isLit, IsLit);
 
 
 @end
