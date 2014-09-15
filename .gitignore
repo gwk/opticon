@@ -2,6 +2,7 @@
 _build/
 misc/
 private/
+rel/
 
 # finder
 .DS_Store
